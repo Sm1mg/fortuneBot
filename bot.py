@@ -16,10 +16,10 @@ cursor = db.cursor()
 load_dotenv()
 key = os.environ.get('key')
 
-intents = discord.Intents.default()
-intents.members = True
+#intents = discord.Intents.default()
+#intents.members = True
 
-bot = commands.bot(command_prefix="f!", intents=intents, case_insensitive=True)
+bot = commands.Bot(command_prefix="f!", case_insensitive=True)
 bot.remove_command("help")
 
 
@@ -312,7 +312,8 @@ async def channel(ctx, *, arg=''):
 @commands.cooldown(1,5,commands.BucketType.user)
 async def setOptions(ctx, *, arg=''):
 	#TODO have the bot do a test execution of fortune with the given args
-	# if the exit code is 0, put the args into db	
+	# if the exit code is 0, put the args into db
+	return False
 
 # Feedback command (300 second cooldown)
 @bot.command()
