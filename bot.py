@@ -3,6 +3,7 @@ from discord.ext import commands, tasks
 import sqlite3 as sql
 import os
 import discord
+import random
 [4, 8, 15, 16, 23, 42]
 print("Starting up...")
 #TODO create task to print a fortune to all guilds
@@ -50,7 +51,7 @@ async def getEmbed(ctx, title='', content='', footer='', color=''):
 
 # Creates and sends an Embed message
 async def send(ctx, title='', content='', footer='', color=''):
-    embed = await getEmbed(ctx, title, content, footer)
+    embed = await getEmbed(ctx, title, content, footer, color)
     await ctx.send(embed=embed)
 
 
