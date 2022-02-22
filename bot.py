@@ -201,7 +201,7 @@ async def on_guild_join(guild):
 				name=guild.name,
 				icon_url=guild.icon_url
 			)
-			await ctx.send(embed=embed)
+			await channel.send(embed=embed)
 			break
 
 # When the bot is removed from a guild :(
