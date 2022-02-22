@@ -27,187 +27,196 @@ bot.remove_command("help")
 
 # Returns a random hexadecimal value from a given seed
 async def getRandomHex(seed):
-    random.seed(seed)
-    return random.randint(0, 16777215)
+	random.seed(seed)
+	return random.randint(0, 16777215)
 
 
 
 # Creates a standard Embed object
-async def getEmbed(ctx, title='', content='', footer='', color=''):
-    if color == '':
-        color = await getRandomHex(ctx.author.id)
-    embed = discord.Embed(
-        title=title,
-        description=content,
-        color=color
-    )
-    embed.set_author(name=ctx.author.display_name,
-                     icon_url=ctx.author.avatar_url)
-    # TODO Hide the footer until i find out what to do with it
-    # embed.set_footer(footer=footer)
-    return embed
+async def getEmbed(ctx, title='', content='', footer=''):
+	if color == '':
+		color = await getRandomHex(ctx.author.id)
+	embed = discord.Embed(
+		title=title,
+		description=content,
+		color=color
+	)
+	embed.set_author(name=ctx.author.display_name,
+					 icon_url=ctx.author.avatar_url)
+	# TODO Hide the footer until i find out what to do with it
+	# embed.set_footer(footer=footer)
+	return embed
 
 
 
 # Creates and sends an Embed message
-async def send(ctx, title='', content='', footer='', color=''):
-    embed = await getEmbed(ctx, title, content, footer, color)
-    await ctx.send(embed=embed)
+async def send(ctx, title='', content='', footer=''):
+	embed = await getEmbed(ctx, title, content, footer)
+	await ctx.send(embed=embed)
 
 
 
 # Refresh the bot's status to match server counts
 async def refreshStatus():
-    cursor.execute('SELECT id FROM Servers')
-    cachedServers = len(cursor.fetchall())
-    servers = len(bot.guilds)
-    if cachedServers != servers:
-        print(
-            "!!!!!!!!!!!COUNT OF CACHED SERVERS MISSING DISCORD LISTED SERVERS!!!!!!!!!!!!")
-        print(f'cachedServers = {cachedServers}')
-        print(f'serverCount = {servers}')
-    await bot.change_presence(activity=discord.Activity(
-        type=discord.ActivityType.watching, name=f"for f! in {servers:,} servers!"))
+	cursor.execute('SELECT id FROM Servers')
+	cachedServers = len(cursor.fetchall())
+	servers = len(bot.guilds)
+	if cachedServers != servers:
+		print(
+			"!!!!!!!!!!!COUNT OF CACHED SERVERS MISSING DISCORD LISTED SERVERS!!!!!!!!!!!!")
+		print(f'cachedServers = {cachedServers}')
+		print(f'serverCount = {servers}')
+	await bot.change_presence(activity=discord.Activity(
+		type=discord.ActivityType.watching, name=f"for f! in {servers:,} servers!"))
 
 
 
 # Build database tables if they don't already exist
 async def buildtables():
-    cursor.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='Servers';")
-    if cursor.fetchone() is None:
-        print('Servers table not found, creating...')
-        cursor.execute("""
+	cursor.execute(
+		"SELECT name FROM sqlite_master WHERE type='table' AND name='Servers';")
+	if cursor.fetchone() is None:
+		print('Servers table not found, creating...')
+		cursor.execute("""
 			CREATE TABLE Servers (
 			id INTEGER KEY,
 			channel INTEGER,
 			options STRING
 			);
 		""")
-        db.commit()
-    cursor.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='feedback';")
-    if cursor.fetchone() is None:
-        print('feedback table not found, creating...')
-        cursor.execute("""
-	    CREATE TABLE feedback (
+		db.commit()
+	cursor.execute(
+		"SELECT name FROM sqlite_master WHERE type='table' AND name='feedback';")
+	if cursor.fetchone() is None:
+		print('feedback table not found, creating...')
+		cursor.execute("""
+		CREATE TABLE feedback (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			server STRING,
 			user STRING,
 			message STRING
-	    	);
+			);
 		""")
-        db.commit()
-    cursor.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='bannedFeedback';")
-    if cursor.fetchone() is None:
-        print('table bannedFeedback not found, creating...')
-        cursor.execute("""
+		db.commit()
+	cursor.execute(
+		"SELECT name FROM sqlite_master WHERE type='table' AND name='bannedFeedback';")
+	if cursor.fetchone() is None:
+		print('table bannedFeedback not found, creating...')
+		cursor.execute("""
 			CREATE TABLE bannedFeedback (
 			id INTEGER KEY,
 			reason STRING
 			);
 		""")
-        db.commit()
+		db.commit()
 
 
 
 # When bot connects to Discord
 @bot.event
 async def on_ready():
-    print('Bot Online!')
-    await buildtables()
-    await refreshStatus()
-    cursor.execute('SELECT id FROM Servers')
-    print('Registered server IDs: ' + str(cursor.fetchall()))
-    print('Discord listed server IDs:' + str(bot.guilds))
+	print('Bot Online!')
+	await buildtables()
+	await refreshStatus()
+	cursor.execute('SELECT id FROM Servers')
+	print('Registered server IDs: ' + str(cursor.fetchall()))
+	print('Discord listed server IDs:' + str(bot.guilds))
 
 
 
 # Custom error handler
 @bot.event
 async def on_command_error(ctx, error):
-    # If an unknown command is issued
-    if isinstance(error, discord.ext.commands.errors.CommandNotFound):
-        await send(ctx, 'Command not found:', f'{str(error)} is not a valid command, please refer to %help for a list of commands.')
-        return
+	# If an unknown command is issued
+	if isinstance(error, discord.ext.commands.errors.CommandNotFound):
+		await send(ctx, 'Command not found:', f'{str(error)} is not a valid command, please refer to %help for a list of commands.')
+		return
 
-    # If the bot doesn't have high enough permissions to do something
-    if isinstance(getattr(error, 'original', error), discord.Forbidden):
-        # god this is a clusterfuck
-        embed = await getEmbed(ctx, "The bot doesn't have enough permissions to do this!")
-        embed.add_field(name='What went wrong:',
-                        value="This error appears when the bot doesn't have the permissions it needs.  This is likely caused by the order of roles in this server.", inline=True)
-        embed.add_field(name='How to fix it:',
-                        value=f"Most likely you can fix this by moving the role created for the bot ({ctx.guild.self_role.mention}) to the top of your server's role list.  If the issue persists, feel free to submit a bug report with r!feedback!", inline=True)
-        await ctx.send(embed=embed)
-        return
+	# If the bot doesn't have high enough permissions to do something
+	if isinstance(getattr(error, 'original', error), discord.Forbidden):
+		# god this is a clusterfuck
+		embed = await getEmbed(ctx, "The bot doesn't have enough permissions to do this!")
+		embed.add_field(name='What went wrong:',
+						value="This error appears when the bot doesn't have the permissions it needs.  This is likely caused by the order of roles in this server.", inline=True)
+		embed.add_field(name='How to fix it:',
+						value=f"Most likely you can fix this by moving the role created for the bot ({ctx.guild.self_role.mention}) to the top of your server's role list.  If the issue persists, feel free to submit a bug report with r!feedback!", inline=True)
+		await ctx.send(embed=embed)
+		return
 
-    # If a command is on cooldown
-    if isinstance(error, commands.CommandOnCooldown):
-        await send(ctx, 'Command on cooldown:', f'This command is on cooldown, please try again in {round(error.retry_after)} seconds.')
-        return
+	# If a command is on cooldown
+	if isinstance(error, commands.CommandOnCooldown):
+		await send(ctx, 'Command on cooldown:', f'This command is on cooldown, please try again in {round(error.retry_after)} seconds.')
+		return
 
-    # If the user isn't allowed to use a command
-    if isinstance(error, commands.MissingPermissions):
-        await send(ctx, 'Insufficient permissions:', 'You do not have the required permissions to run this command.')
-    # If we're being ratelimited (uh oh)
-    if isinstance(error, discord.HTTPException):
-        await send(ctx, "The bot is currently being ratelimited!", "Please report this to the developer with r!feedback alongside what you were doing to cause this!")
-        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-        print("being ratelimited fuck fuck fuck")
-        print(error)
-        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-        raise error
-    print(error)
-    # Send generic error message if none of the above apply
-    embed = await getEmbed(ctx, 'Oops!  Something just went wrong...', error)
-    embed.add_field(name='Bug Reports:', value="If this looks like it's a bug, please report it with r!feedback!  Make sure to include details on how to reproduce the bug and I'll patch it as soon as I can!", inline=False)
-    await ctx.send(embed=embed)
-    raise error
+	# If the user isn't allowed to use a command
+	if isinstance(error, commands.MissingPermissions):
+		await send(ctx, 'Insufficient permissions:', 'You do not have the required permissions to run this command.')
+	# If we're being ratelimited (uh oh)
+	if isinstance(error, discord.HTTPException):
+		await send(ctx, "The bot is currently being ratelimited!", "Please report this to the developer with r!feedback alongside what you were doing to cause this!")
+		print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+		print("being ratelimited fuck fuck fuck")
+		print(error)
+		print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+		raise error
+	print(error)
+	# Send generic error message if none of the above apply
+	embed = await getEmbed(ctx, 'Oops!  Something just went wrong...', error)
+	embed.add_field(name='Bug Reports:', value="If this looks like it's a bug, please report it with r!feedback!  Make sure to include details on how to reproduce the bug and I'll patch it as soon as I can!", inline=False)
+	await ctx.send(embed=embed)
+	raise error
 
 
 # When bot connects to Discord
 @bot.event
 async def on_ready():
-    print('Bot Online!')
-    await buildtables()
-    await refreshStatus()
-    cursor.execute('SELECT id FROM Servers')
-    print('Registered server IDs: ' + str(cursor.fetchall()))
-    print('Discord listed server IDs:' + str(bot.guilds))
+	print('Bot Online!')
+	await buildtables()
+	await refreshStatus()
+	cursor.execute('SELECT id FROM Servers')
+	print('Registered server IDs: ' + str(cursor.fetchall()))
+	print('Discord listed server IDs:' + str(bot.guilds))
 
 # When the bot joins a new guild
 @bot.event
 async def on_guild_join(guild):
-    cursor.execute('SELECT id FROM Servers')
-    serverList = cursor.fetchall()
-    if (guild.id, ) not in serverList:
-        cursor.execute('INSERT INTO Servers (id, channel, options) VALUES (?, ?, ?)', (guild.id, -1, None))
-        db.commit()
+	cursor.execute('SELECT id FROM Servers')
+	serverList = cursor.fetchall()
+	if (guild.id, ) not in serverList:
+		cursor.execute('INSERT INTO Servers (id, channel, options) VALUES (?, ?, ?)', (guild.id, -1, None))
+		db.commit()
 		# Update the status to match
-        await refreshStatus()
-    else:
-        print(f"newly joined server ({guild.name}) is already in database???")
+		await refreshStatus()
+	else:
+		print(f"newly joined server ({guild.name}) is already in database???")
 	# Loop through channels until we find one we can send the welcome message in	
-    for channel in guild.text_channels:
-        if channel.permissions_for(guild.me).send_messages:
-            await send(channel, 'Thanks for adding Fortune Bot!', 'Thank you for adding Fortune Bot, my prefix is "f!" Try `f!help setup` to get started!', '', await getRandomHex(guild.id))
-            break
+	for channel in guild.text_channels:
+		if channel.permissions_for(guild.me).send_messages:
+			embed = discord.Embed(
+				title='Thanks for adding Fortune Bot!',
+				description='Thank you for adding Fortune Bot, my prefix is "f!" Try `f!help setup` to get started!',
+				color=await getRandomHex(guild.id)
+			)
+			embed.set_author(
+				name=guild.name,
+				icon_url=guild.icon_url
+			)
+			await ctx.send(embed=embed)
+			break
 
 # When the bot is removed from a guild :(
 @bot.event
 async def on_guild_remove(guild):
 	# Purge server from database
-    cursor.execute('SELECT id FROM Servers')
-    serverList = cursor.fetchall()
-    if (guild.id, ) not in serverList:
-        print("!!!!!!!!!!!!!!LEFT UNDOCUMENTED SERVER HOW THE FUCK!!!!!!!!!!!!!!")
-        return
-    cursor.execute('DELETE FROM Servers WHERE id=?',(guild.id,))
-    db.commit()
+	cursor.execute('SELECT id FROM Servers')
+	serverList = cursor.fetchall()
+	if (guild.id, ) not in serverList:
+		print("!!!!!!!!!!!!!!LEFT UNDOCUMENTED SERVER HOW THE FUCK!!!!!!!!!!!!!!")
+		return
+	cursor.execute('DELETE FROM Servers WHERE id=?',(guild.id,))
+	db.commit()
 	# Update the status to match
-    await refreshStatus()
+	await refreshStatus()
 
 
 ##
@@ -249,12 +258,12 @@ async def help(ctx, helpType=None):
 # Send commands alias
 @bot.command(aliases=['commands'])
 async def command(ctx):
-    await help(ctx, 'commands')
+	await help(ctx, 'commands')
 
 # Send setup alias
 @bot.command()
 async def setup(ctx):
-    await help(ctx, 'setup')
+	await help(ctx, 'setup')
 
 #End Help
 
@@ -411,13 +420,13 @@ async def clearFeedback(ctx):
   cursor.execute('DROP TABLE feedback ;')
   db.commit()
   cursor.execute("""
-    CREATE TABLE feedback (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      server STRING,
-      user STRING,
-      message STRING
-    );
-    """)
+	CREATE TABLE feedback (
+	  id INTEGER PRIMARY KEY AUTOINCREMENT,
+	  server STRING,
+	  user STRING,
+	  message STRING
+	);
+	""")
   db.commit()
   await ctx.send('Cleared!')
 
@@ -442,16 +451,16 @@ async def buildTables(ctx):
 @bot.command()
 @commands.is_owner()
 async def editDB(ctx, *, arg):
-    cursor.execute(arg)
-    db.commit()
-    await send(ctx, 'Changes commited to DB.')
+	cursor.execute(arg)
+	db.commit()
+	await send(ctx, 'Changes commited to DB.')
 
 # Send raw read commands to the SQL DB
 @bot.command()
 @commands.is_owner()
 async def readDB(ctx, *, arg):
-    cursor.execute(arg)
-    await send(ctx, f'Result of {arg}:', cursor.fetchall())
+	cursor.execute(arg)
+	await send(ctx, f'Result of {arg}:', cursor.fetchall())
 
 
 bot.run(key)
