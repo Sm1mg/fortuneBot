@@ -185,7 +185,7 @@ async def on_guild_join(guild):
 	cursor.execute('SELECT id FROM Servers')
 	serverList = cursor.fetchall()
 	if (guild.id, ) not in serverList:
-		cursor.execute('INSERT INTO Servers (id, channel, options) VALUES (?, ?, ?)', (guild.id, -1, None))
+		cursor.execute('INSERT INTO Servers (id, channel, options) VALUES (?, ?, ?)', (guild.id, -1, " "))
 		db.commit()
 		# Update the status to match
 		await refreshStatus()
@@ -224,7 +224,7 @@ async def on_guild_remove(guild):
 ##
 
 # Align fortune task to start at the right time
-@tasks.loop(seconds = 1)
+@tasks.loop(seconds = 1, count = 1)
 async def sync():
 	time = datetime.now().strftime("%H:%M")
 	#if time == "12:00":
