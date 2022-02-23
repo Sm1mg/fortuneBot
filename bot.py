@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from datetime import datetime
 from discord.ext import commands, tasks
 import sqlite3 as sql
 import os
@@ -174,6 +175,7 @@ async def on_ready():
 	cursor.execute('SELECT id FROM Servers')
 	print('Registered server IDs: ' + str(cursor.fetchall()))
 	print('Discord listed server IDs:' + str(bot.guilds))
+	sync.start()
 
 # When the bot joins a new guild
 @bot.event
@@ -215,10 +217,26 @@ async def on_guild_remove(guild):
 	db.commit()
 	# Update the status to match
 	await refreshStatus()
+##
+## Tasks
+##
 
+# Align fortune task to start at the right time
+@tasks.loop(seconds = 1)
+async def sync():
+	time = datetime.now().strftime("%H:%M")
+	print(time)
+	if(time == "12:00"):
+		fortune.start()
+
+# Task to print a fortune every 24 hours
+@tasks.loop(seconds = 86400)
+async def fortune():
+	#TODO this
+	print("fortune going out")
 
 ##
-##BEGIN COMMANDS
+## Commands
 ##
 
 #TODO make help command
