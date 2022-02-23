@@ -363,13 +363,14 @@ async def channel(ctx, *, arg=''):
 @bot.command()
 @commands.has_permissions(manage_channels=True)
 @commands.cooldown(1,5,commands.BucketType.user)
-async def setOptions(ctx, *, arg=''):
+async def options(ctx, *, arg=''):
 	if arg == '':
 		await send(ctx, "You need to specify options for fortune!", "To see all options, refer to https://linux.die.net/man/6/fortune")
-	if subprocess.call(["fortune "], arg) != 0:
+	if os.execute("fortune " + arg) != 0:
 		await send(ctx, "Something went wrong setting the options!", "The options you specified were not accepted by fortune.\n Please refer to https://linux.die.net/man/6/fortune")
 		return
 	cursor.execute("UPDATE Servers SET options=? WHERE id=?", (arg, ctx.guild.id))
+	await send(ctx, "Success!", f"The options `{arg}` have been successfully set.")
 
 
 # Feedback command (300 second cooldown)
