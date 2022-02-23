@@ -65,7 +65,7 @@ async def updateDB():
 		if guild not in dbGuilds:
 			print(f"guild {guild.name} was not in db, adding.")
 			cursor.execute('INSERT INTO Servers (id, channel, options) VALUES (?, ?, ?)', (guild.id, -1, None))
-	db.commit()
+			db.commit()
 
 	# Check for servers that shouldn't be in db
 	guilds = bot.guilds
@@ -76,7 +76,7 @@ async def updateDB():
 		if guild not in guilds:
 			print(f"{guild.name} should not be in database, removing.")
 			cursor.execute("DELETE FROM Servers WHERE id=?", (guild.id,))
-	db.commit()
+			db.commit()
 
 # Refresh the bot's status to match server counts
 async def refreshStatus():
