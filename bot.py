@@ -73,7 +73,7 @@ async def updateDB():
 	dbGuilds = cursor.fetchall()
 	for guild in dbGuilds:
 		if guild not in guilds:
-			print(f"{guild.name} should not be in database, removing.")
+			print(f"{guild} should not be in database, removing.")
 			cursor.execute("DELETE FROM Servers WHERE id=?", (guild.id,))
 	db.commit()
 
