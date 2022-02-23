@@ -503,6 +503,6 @@ async def readDB(ctx, *, arg):
 @bot.command()
 @commands.is_owner()
 async def eval(ctx, *, arg):
-	send(ctx, "Eval result:", eval(arg))
+	await send(ctx, "Eval result:", eval(arg))
 
 bot.run(key)
