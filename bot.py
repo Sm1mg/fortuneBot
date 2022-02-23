@@ -266,6 +266,10 @@ async def fortune():
 		guild = bot.get_guild(server[0])
 		ctx = bot.get_channel(server[1])
 		options = server[2]
+
+		if ctx is None:
+			continue
+		
 		# Execute fortune with the guild's options
 		if options is None:
 			result = subprocess.run(["fortune"], stdout=subprocess.PIPE).stdout.decode('utf-8')
