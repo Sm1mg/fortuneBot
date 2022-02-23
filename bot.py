@@ -34,12 +34,10 @@ async def getRandomHex(seed):
 
 # Creates a standard Embed object
 async def getEmbed(ctx, title='', content='', footer=''):
-	if color == '':
-		color = await getRandomHex(ctx.author.id)
 	embed = discord.Embed(
 		title=title,
 		description=content,
-		color=color
+		color=await getRandomHex(ctx.author.id)
 	)
 	embed.set_author(name=ctx.author.display_name,
 					 icon_url=ctx.author.avatar_url)
