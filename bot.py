@@ -55,10 +55,31 @@ async def send(ctx, title='', content='', footer=''):
 	embed = await getEmbed(ctx, title, content, footer)
 	await ctx.send(embed=embed)
 
+# Make sure tables exist for all servers bot is in
+async def updateDB():
+	# Check for servers missing in db
+	guilds = bot.guilds
+	cursor.execute("SELECT id FROM Servers")
+	dbGuilds = cursor.fetchall()
+	for guild in guilds:
+		if guild not in dbGuilds:
+			print(f"guild {guild.name} was not in db, adding.")
+			cursor.execute('INSERT INTO Servers (id, channel, options) VALUES (?, ?, ?)', (guild.id, -1, None))
+	db.commit()
 
+	# Check for servers that shouldn't be in db
+	guilds = bot.guilds
+	cursor.execute("SELECT id FROM Servers")
+	dbGuilds = cursor.fetchall()
+	for guild in dbGuilds:
+		if guild not in guilds:
+			print(f"{guild.name} should not be in database, removing.")
+			cursor.execute("DELETE FROM Servers WHERE id=?", (guild.id,))
+	db.commit()
 
 # Refresh the bot's status to match server counts
 async def refreshStatus():
+	await updateDB()
 	cursor.execute('SELECT id FROM Servers')
 	cachedServers = len(cursor.fetchall())
 	servers = len(bot.guilds)
@@ -510,6 +531,7 @@ async def readDB(ctx, *, arg):
 	cursor.execute(arg)
 	await send(ctx, f'Result of {arg}:', cursor.fetchall())
 
+# Evaluate a command sent by me
 @bot.command()
 @commands.is_owner()
 async def eval(ctx, *, arg):
