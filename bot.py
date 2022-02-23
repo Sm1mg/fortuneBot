@@ -392,7 +392,9 @@ async def channel(ctx, *, arg=''):
 async def options(ctx, *, arg=''):
 	if arg == '':
 		await send(ctx, "You need to specify options for fortune!", "To see all options, refer to https://linux.die.net/man/6/fortune")
-	if os.execute("fortune " + arg) != 0:
+	result = subprocess.call(['fortune', arg])	
+	print(result)
+	if result != 0:
 		await send(ctx, "Something went wrong setting the options!", "The options you specified were not accepted by fortune.\n Please refer to https://linux.die.net/man/6/fortune")
 		return
 	cursor.execute("UPDATE Servers SET options=? WHERE id=?", (arg, ctx.guild.id))
