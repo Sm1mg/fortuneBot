@@ -185,7 +185,7 @@ async def on_guild_join(guild):
 	cursor.execute('SELECT id FROM Servers')
 	serverList = cursor.fetchall()
 	if (guild.id, ) not in serverList:
-		cursor.execute('INSERT INTO Servers (id, channel, options) VALUES (?, ?, ?)', (guild.id, -1, " "))
+		cursor.execute('INSERT INTO Servers (id, channel, options) VALUES (?, ?, ?)', (guild.id, -1, None))
 		db.commit()
 		# Update the status to match
 		await refreshStatus()
@@ -236,7 +236,7 @@ async def sync():
 async def fortune():
 	sync.stop()
 	#TODO this
-	print("fortune going out")
+	print("fortunes going out")
 	cursor.execute("SELECT * FROM Servers")
 	servers = cursor.fetchall()
 	# Loop through every server in the database
@@ -245,7 +245,7 @@ async def fortune():
 		ctx = bot.get_channel(server[1])
 		options = server[2]
 		# Execute fortune with the guild's options
-		if options == " ":
+		if options is None:
 			result = subprocess.run(["fortune"], stdout=subprocess.PIPE).stdout.decode('utf-8')
 		else:
 			result = subprocess.run(["fortune", options], stdout=subprocess.PIPE).stdout.decode('utf-8')
@@ -364,9 +364,13 @@ async def channel(ctx, *, arg=''):
 @commands.has_permissions(manage_channels=True)
 @commands.cooldown(1,5,commands.BucketType.user)
 async def setOptions(ctx, *, arg=''):
-	#TODO have the bot do a test execution of fortune with the given args
-	# if the exit code is 0, put the args into db
-	return False
+	if arg == '':
+		await send(ctx, "You need to specify options for fortune!", "To see all options, refer to https://linux.die.net/man/6/fortune")
+	if subprocess.call(["fortune "], arg) != 0:
+		await send(ctx, "Something went wrong setting the options!", "The options you specified were not accepted by fortune.\n Please refer to https://linux.die.net/man/6/fortune")
+		return
+	cursor.execute("UPDATE Servers SET options=? WHERE id=?", (arg, ctx.guild.id))
+
 
 # Feedback command (300 second cooldown)
 @bot.command()
