@@ -61,8 +61,13 @@ async def updateDB():
 	guilds = bot.guilds
 	cursor.execute("SELECT id FROM Servers")
 	dbGuilds = cursor.fetchall()
+	# Create an array containing the id of all guilds in db
+	guildID = []
+	for guild in dbGuilds:
+		guildID.append(guild[0])
+
 	for guild in guilds:
-		if guild not in dbGuilds:
+		if guild.id not in guildID:
 			print(f"guild {guild.name} was not in db, adding.")
 			cursor.execute('INSERT INTO Servers (id, channel, options) VALUES (?, ?, ?)', (guild.id, -1, None))
 			db.commit()
@@ -249,8 +254,7 @@ async def on_guild_remove(guild):
 @tasks.loop(seconds = 1, count = 1)
 async def sync():
 	time = datetime.now().strftime("%H:%M")
-	#if time == "12:00":
-	if True:
+	if time == "12:00":
 		fortune.start()
 
 # Task to print a fortune every 24 hours
