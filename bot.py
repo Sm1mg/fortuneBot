@@ -312,7 +312,7 @@ async def setup(ctx):
 async def channel(ctx, *, arg=''):
 	# Pull guild's channel
 	cursor.execute('SELECT channel FROM Servers WHERE id=?',(ctx.guild.id,))
-	channelID = cursor.fetchone()[0]
+	channelID = cursor.fetchone()[0][0]
 	storedChannel = ctx.guild.get_channel(channelID)
 
 	# If we can't find the channel but it has been set
