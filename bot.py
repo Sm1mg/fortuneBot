@@ -227,7 +227,8 @@ async def on_guild_remove(guild):
 @tasks.loop(seconds = 1)
 async def sync():
 	time = datetime.now().strftime("%H:%M")
-	if(time == "12:00"):
+	#if time == "12:00":
+	if True:
 		fortune.start()
 
 # Task to print a fortune every 24 hours
