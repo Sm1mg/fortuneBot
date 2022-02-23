@@ -246,6 +246,7 @@ async def on_guild_remove(guild):
 	db.commit()
 	# Update the status to match
 	await refreshStatus()
+
 ##
 ## Tasks
 ##
@@ -289,7 +290,8 @@ async def fortune():
 			icon_url=guild.icon_url
 		)
 		await ctx.send(embed=embed)
-
+	# Refresh the bot's status just for fun
+	await refreshStatus()
 ##
 ## Commands
 ##
