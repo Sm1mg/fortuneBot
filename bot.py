@@ -393,18 +393,32 @@ async def channel(ctx, *, arg=''):
 
 
 @bot.command()
-@commands.has_permissions(manage_channels=True)
+@commands.has_permissions(manage_channels=True, aliases=['option', 'setoptions'])
 @commands.cooldown(1,5,commands.BucketType.user)
 async def options(ctx, *, arg=''):
+
+	# If user does not provide any options
 	if arg == '':
-		await send(ctx, "You need to specify options for fortune!", "To see all options, refer to https://linux.die.net/man/6/fortune")
+		cursor.execute("SELECT options FROM Servers WHERE id=?", (ctx.guild.id,))
+		options = cursor.fetchone()[0]
+		# If there are options set
+		if options is not None:
+			embed = await getEmbed(ctx, "Current options:", f"`options`")
+			embed.add_field(name='Tip:', value="If you want to clear your options, run `f!options None`.", inline=False)
+		return
+	
+	# If the user wants to clear the options
+	if arg.lower() == "none":
+		cursor.execute("UPDATE Servers SET options=? WHERE id=?", (None, ctx.guild.id))
+		await send(ctx, "Options reset!")
+		return
 	result = subprocess.call(['fortune', arg])	
 	print(result)
 	if result != 0:
 		await send(ctx, "Something went wrong setting the options!", "The options you specified were not accepted by fortune.\n Please refer to https://linux.die.net/man/6/fortune")
 		return
 	cursor.execute("UPDATE Servers SET options=? WHERE id=?", (arg, ctx.guild.id))
-	await send(ctx, "Success!", f"The options `{arg}` have been successfully set.")
+	await send(ctx, "Success!", f"The option(s) `{arg}` have been successfully set.")
 
 
 # Feedback command (300 second cooldown)
