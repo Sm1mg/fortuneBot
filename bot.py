@@ -72,9 +72,10 @@ async def updateDB():
 	cursor.execute("SELECT id FROM Servers")
 	dbGuilds = cursor.fetchall()
 	for guild in dbGuilds:
+		guild = guild[0]
 		if guild not in guilds:
 			print(f"{guild} should not be in database, removing.")
-			cursor.execute("DELETE FROM Servers WHERE id=?", (guild.id,))
+			cursor.execute("DELETE FROM Servers WHERE id=?", (guild,))
 	db.commit()
 
 # Refresh the bot's status to match server counts
