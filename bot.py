@@ -337,7 +337,8 @@ async def channel(ctx, *, arg=''):
 	if len(channel) > 1:
 		await send(ctx, 'Too many channels pinged!', "You can't have multiple fortune channels!\n\nPlease ping *one* channel to use.")
 		return
-
+		
+	channel = channel[0]
 	# Already channel
 	if int(channel.id) == int(channelID):
 		await send(ctx, 'Error changing role!', f'{channel.name} is already being used for fortunes!')
