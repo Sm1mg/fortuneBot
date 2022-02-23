@@ -405,6 +405,9 @@ async def options(ctx, *, arg=''):
 		if options is not None:
 			embed = await getEmbed(ctx, "Current options:", f"`options`")
 			embed.add_field(name='Tip:', value="If you want to clear your options, run `f!options None`.", inline=False)
+			await ctx.send(embed=embed)
+			return
+		await send(ctx, "You need to specify options!", "To see all options, refer to https://linux.die.net/man/6/fortune")
 		return
 	
 	# If the user wants to clear the options
