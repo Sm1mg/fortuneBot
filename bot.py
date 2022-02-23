@@ -245,7 +245,10 @@ async def fortune():
 		ctx = bot.get_channel(server[1])
 		options = server[2]
 		# Execute fortune with the guild's options
-		result = subprocess.run(["fortune", options], stdout=subprocess.PIPE).stdout.decode('utf-8')
+		if options == " ":
+			result = subprocess.run(["fortune"], stdout=subprocess.PIPE).stdout.decode('utf-8')
+		else:
+			result = subprocess.run(["fortune", options], stdout=subprocess.PIPE).stdout.decode('utf-8')
 		embed = discord.Embed(
 			title='Daily fortune:',
 			description=result,
