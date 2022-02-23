@@ -503,6 +503,10 @@ async def readDB(ctx, *, arg):
 @bot.command()
 @commands.is_owner()
 async def eval(ctx, *, arg):
-	await send(ctx, "Eval result:", eval(arg))
+	result = eval(arg)
+	if result is not None:
+		await send(ctx, "Eval result:", result)
+		return
+	await send(ctx, "Eval returned a NoneType.")
 
 bot.run(key)
