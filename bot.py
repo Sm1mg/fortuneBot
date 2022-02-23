@@ -392,8 +392,8 @@ async def channel(ctx, *, arg=''):
 	db.commit()
 
 
-@bot.command()
-@commands.has_permissions(manage_channels=True, aliases=['option', 'setoptions'])
+@bot.command(aliases=['option', 'setoptions'])
+@commands.has_permissions(manage_channels=True)
 @commands.cooldown(1,5,commands.BucketType.user)
 async def options(ctx, *, arg=''):
 
