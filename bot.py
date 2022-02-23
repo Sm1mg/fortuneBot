@@ -3,11 +3,13 @@ from datetime import datetime
 from discord.ext import commands, tasks
 import sqlite3 as sql
 import os
+import subprocess
 import discord
 import random
 [4, 8, 15, 16, 23, 42]
 print("Starting up...")
 #TODO create task to print a fortune to all guilds
+#TODO create a commands that uses bot.guilds to create database entries for all servers )
 
 # Create database link
 db = sql.connect('database.db')
@@ -225,15 +227,34 @@ async def on_guild_remove(guild):
 @tasks.loop(seconds = 1)
 async def sync():
 	time = datetime.now().strftime("%H:%M")
-	print(time)
 	if(time == "12:00"):
 		fortune.start()
 
 # Task to print a fortune every 24 hours
 @tasks.loop(seconds = 86400)
 async def fortune():
+	sync.stop()
 	#TODO this
 	print("fortune going out")
+	cursor.execute("SELECT * FROM Servers")
+	servers = cursor.fetchall()
+	# Loop through every server in the database
+	for server in servers:
+		guild = bot.get_guild(server[0])
+		ctx = bot.get_channel(server[1])
+		options = server[2]
+		# Execute fortune with the guild's options
+		result = subprocess.run(["fortune", options], stdout=subprocess.PIPE).stdout.decode('utf-8')
+		embed = discord.Embed(
+			title='Daily fortune:',
+			description=result,
+			color=await getRandomHex(guild.id)
+		)
+		embed.set_author(
+			name=guild.name,
+			icon_url=guild.icon_url
+		)
+		await ctx.send(embed=embed)
 
 ##
 ## Commands
@@ -256,6 +277,7 @@ async def help(ctx, helpType=None):
 	# List the bot's commands
 	elif helpType == 'commands':
 		embed = await getEmbed(ctx, 'Helping describe commands')
+		#TODO add commands
 		embed.add_field(name="feedback:", value="Allows you to send feedback to the developer of this bot. An example of the feedback command in use would look like 'r!feedback this bot is great!'")
 		await ctx.send(embed=embed)
 		return
@@ -478,5 +500,9 @@ async def readDB(ctx, *, arg):
 	cursor.execute(arg)
 	await send(ctx, f'Result of {arg}:', cursor.fetchall())
 
+@bot.command()
+@commands.is_owner()
+async def eval(ctx, *, arg):
+	send(ctx, "Eval result:", eval(arg))
 
 bot.run(key)
