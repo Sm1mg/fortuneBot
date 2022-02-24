@@ -560,9 +560,9 @@ async def readDB(ctx, *, arg):
 	await send(ctx, f'Result of {arg}:', cursor.fetchall())
 
 # Evaluate a command sent by me
-@bot.command()
+@bot.command(aliases=['eval'])
 @commands.is_owner()
-async def eval(ctx, *, arg):
+async def execute(ctx, *, arg):
 	result = eval(arg)
 	if result is not None:
 		await send(ctx, "Eval result:", result)
