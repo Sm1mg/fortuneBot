@@ -253,7 +253,6 @@ async def on_guild_remove(guild):
 @tasks.loop(seconds = 1)
 async def sync():
 	time = datetime.now().strftime("%H:%M")
-	print(time)
 	if time == "12:00":
 		fortune.start()
 
@@ -275,7 +274,7 @@ async def fortune():
 			continue
 		
 		# Execute fortune with the guild's options
-		if options is None or options == ' ':
+		if options is None:
 			result = subprocess.run(["fortune"], stdout=subprocess.PIPE).stdout.decode('utf-8')
 		else:
 			result = subprocess.run(["fortune", options], stdout=subprocess.PIPE).stdout.decode('utf-8')
