@@ -403,7 +403,7 @@ async def options(ctx, *, arg=''):
 		options = cursor.fetchone()[0]
 		# If there are options set
 		if options is not None:
-			embed = await getEmbed(ctx, "Current options:", f"`{'\\'.join(options)}`")
+			embed = await getEmbed(ctx, "Current options:", f"`{options}`")
 			embed.add_field(name='Tip:', value="If you want to clear your options, run `f!options None`.", inline=False)
 			await ctx.send(embed=embed)
 			return
@@ -422,7 +422,7 @@ async def options(ctx, *, arg=''):
 		await send(ctx, "Something went wrong setting the options!", "The options you specified were not accepted by fortune.\n Please refer to https://linux.die.net/man/6/fortune")
 		return
 	cursor.execute("UPDATE Servers SET options=? WHERE id=?", (arg, ctx.guild.id))
-	await send(ctx, "Success!", f"The option(s) `{'\\'.join(arg)}` have been successfully set.")
+	await send(ctx, "Success!", f"The option(s) `{arg}` have been successfully set.")
 
 
 # Feedback command (300 second cooldown)
