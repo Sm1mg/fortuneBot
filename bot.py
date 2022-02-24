@@ -8,8 +8,6 @@ import discord
 import random
 [4, 8, 15, 16, 23, 42]
 print("Starting up...")
-#TODO create task to print a fortune to all guilds
-#TODO create a commands that uses bot.guilds to create database entries for all servers )
 
 # Create database link
 db = sql.connect('database.db')
@@ -252,9 +250,10 @@ async def on_guild_remove(guild):
 ##
 
 # Align fortune task to start at the right time
-@tasks.loop(seconds = 1, count = 1)
+@tasks.loop(seconds = 1)
 async def sync():
 	time = datetime.now().strftime("%H:%M")
+	print(time)
 	if time == "12:00":
 		fortune.start()
 
@@ -262,7 +261,6 @@ async def sync():
 @tasks.loop(seconds = 86400)
 async def fortune():
 	sync.stop()
-	#TODO this
 	print("fortunes going out")
 	cursor.execute("SELECT * FROM Servers")
 	servers = cursor.fetchall()
@@ -273,10 +271,11 @@ async def fortune():
 		options = server[2]
 
 		if ctx is None:
+			print(guild.name + " has no set channel, skipping.")
 			continue
 		
 		# Execute fortune with the guild's options
-		if options is None:
+		if options is None or options == ' ':
 			result = subprocess.run(["fortune"], stdout=subprocess.PIPE).stdout.decode('utf-8')
 		else:
 			result = subprocess.run(["fortune", options], stdout=subprocess.PIPE).stdout.decode('utf-8')
@@ -398,7 +397,7 @@ async def channel(ctx, *, arg=''):
 async def options(ctx, *, arg=''):
 
 	# If user does not provide any options
-	if arg == '':
+	if arg == '' or arg.contains("/"):
 		cursor.execute("SELECT options FROM Servers WHERE id=?", (ctx.guild.id,))
 		options = cursor.fetchone()[0]
 		# If there are options set
