@@ -8,6 +8,8 @@ import discord
 import random
 [4, 8, 15, 16, 23, 42]
 print("Starting up...")
+# TODO backslash all user inputs when printing them on f!options
+# TODO set option to change prefix(?)
 
 # Create database link
 db = sql.connect('database.db')
@@ -396,12 +398,12 @@ async def channel(ctx, *, arg=''):
 async def options(ctx, *, arg=''):
 
 	# If user does not provide any options
-	if arg == '' or arg.contains("/"):
+	if arg == '' or arg.find("/") != -1:
 		cursor.execute("SELECT options FROM Servers WHERE id=?", (ctx.guild.id,))
 		options = cursor.fetchone()[0]
 		# If there are options set
 		if options is not None:
-			embed = await getEmbed(ctx, "Current options:", f"`options`")
+			embed = await getEmbed(ctx, "Current options:", f"`{'\\'.join(options)}`")
 			embed.add_field(name='Tip:', value="If you want to clear your options, run `f!options None`.", inline=False)
 			await ctx.send(embed=embed)
 			return
@@ -413,13 +415,14 @@ async def options(ctx, *, arg=''):
 		cursor.execute("UPDATE Servers SET options=? WHERE id=?", (None, ctx.guild.id))
 		await send(ctx, "Options reset!")
 		return
+		
 	result = subprocess.call(['fortune', arg])	
 	print(result)
 	if result != 0:
 		await send(ctx, "Something went wrong setting the options!", "The options you specified were not accepted by fortune.\n Please refer to https://linux.die.net/man/6/fortune")
 		return
 	cursor.execute("UPDATE Servers SET options=? WHERE id=?", (arg, ctx.guild.id))
-	await send(ctx, "Success!", f"The option(s) `{arg}` have been successfully set.")
+	await send(ctx, "Success!", f"The option(s) `{'\\'.join(arg)}` have been successfully set.")
 
 
 # Feedback command (300 second cooldown)
