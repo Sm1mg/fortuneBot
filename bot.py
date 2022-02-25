@@ -434,7 +434,7 @@ async def options(ctx, *, arg=''):
 		return
 	cursor.execute("UPDATE Servers SET options=? WHERE id=?", (arg, ctx.guild.id))
 	db.commit()
-	await send(ctx, "Success!", f"The option{'s' if args.length > 2 else ''} `{arg}` have been successfully set.")
+	await send(ctx, "Success!", f"The option{'s' if len(args) > 2 else ''} `{arg}` have been successfully set.")
 
 
 # Feedback command (300 second cooldown)
