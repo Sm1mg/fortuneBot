@@ -285,7 +285,7 @@ async def fortune():
 			continue
 		
 		# Execute fortune with the guild's options
-		result = subprocess.run(args, stdout=subprocess.PIPE).stdout.decode('utf-8')
+		result = str(subprocess.run(args, stdout=subprocess.PIPE).stdout.decode('utf-8'))
 		embed = discord.Embed(
 			title='Daily fortune:',
 			description=result,
@@ -298,6 +298,7 @@ async def fortune():
 		await ctx.send(embed=embed)
 	# Refresh the bot's status just for fun
 	await refreshStatus()
+
 ##
 ## Commands
 ##
