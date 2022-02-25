@@ -416,8 +416,13 @@ async def options(ctx, *, arg=''):
 		cursor.execute("UPDATE Servers SET options=? WHERE id=?", (None, ctx.guild.id))
 		await send(ctx, "Options reset!")
 		return
-		
-	result = subprocess.call(['fortune', arg])	
+
+	# The user definitely wants us to set options now
+
+	# Split input into argument array
+	args = ['fortune'] + arg.split(" ")
+	print(args)
+	result = subprocess.call(args)	
 	print(result)
 	if result != 0:
 		await send(ctx, "Something went wrong setting the options!", "The options you specified were not accepted by fortune.\n Please refer to https://linux.die.net/man/6/fortune")
