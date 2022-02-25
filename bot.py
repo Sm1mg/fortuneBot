@@ -414,6 +414,7 @@ async def options(ctx, *, arg=''):
 	# If the user wants to clear the options
 	if arg.lower() == "none":
 		cursor.execute("UPDATE Servers SET options=? WHERE id=?", (None, ctx.guild.id))
+		db.commit()
 		await send(ctx, "Options reset!")
 		return
 
