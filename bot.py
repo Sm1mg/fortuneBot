@@ -273,8 +273,13 @@ async def fortune():
 		options = server[2]
 
 		# Split stored options into argument array
-		args = ['fortune'] + options.split(" ")
+		args = ['fortune']
 
+		# If there are options set
+		if options is not None:
+			args.append(options.split(" "))
+
+		# If we couldn't find the channel for fortunes
 		if ctx is None:
 			print(guild.name + " has no set channel, skipping.")
 			continue
