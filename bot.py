@@ -10,6 +10,7 @@ import random
 print("Starting up...")
 # TODO backslash all user inputs when printing them on f!options
 # TODO set option to change prefix(?)
+# TODO subprocess.call takes all as one option, thus users cannot provide multiple options -- what do?
 
 # Create database link
 db = sql.connect('database.db')
@@ -422,6 +423,7 @@ async def options(ctx, *, arg=''):
 		await send(ctx, "Something went wrong setting the options!", "The options you specified were not accepted by fortune.\n Please refer to https://linux.die.net/man/6/fortune")
 		return
 	cursor.execute("UPDATE Servers SET options=? WHERE id=?", (arg, ctx.guild.id))
+	db.commit()
 	await send(ctx, "Success!", f"The option(s) `{arg}` have been successfully set.")
 
 
