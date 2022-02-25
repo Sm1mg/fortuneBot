@@ -272,15 +272,15 @@ async def fortune():
 		ctx = bot.get_channel(server[1])
 		options = server[2]
 
+		# Split stored options into argument array
+		args = ['fortune'] + options.split(" ")
+
 		if ctx is None:
 			print(guild.name + " has no set channel, skipping.")
 			continue
 		
 		# Execute fortune with the guild's options
-		if options is None:
-			result = subprocess.run(["fortune"], stdout=subprocess.PIPE).stdout.decode('utf-8')
-		else:
-			result = subprocess.run(["fortune", options], stdout=subprocess.PIPE).stdout.decode('utf-8')
+		result = subprocess.run(args, stdout=subprocess.PIPE).stdout.decode('utf-8')
 		embed = discord.Embed(
 			title='Daily fortune:',
 			description=result,
@@ -421,7 +421,6 @@ async def options(ctx, *, arg=''):
 
 	# Split input into argument array
 	args = ['fortune'] + arg.split(" ")
-	print(args)
 	result = subprocess.call(args)
 	print(result)
 	if result != 0:
