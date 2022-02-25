@@ -422,14 +422,14 @@ async def options(ctx, *, arg=''):
 	# Split input into argument array
 	args = ['fortune'] + arg.split(" ")
 	print(args)
-	result = subprocess.call(args)	
+	result = subprocess.call(args)
 	print(result)
 	if result != 0:
 		await send(ctx, "Something went wrong setting the options!", "The options you specified were not accepted by fortune.\n Please refer to https://linux.die.net/man/6/fortune")
 		return
 	cursor.execute("UPDATE Servers SET options=? WHERE id=?", (arg, ctx.guild.id))
 	db.commit()
-	await send(ctx, "Success!", f"The option(s) `{arg}` have been successfully set.")
+	await send(ctx, "Success!", f"The option{'s' if args.length > 2 else ''} `{arg}` have been successfully set.")
 
 
 # Feedback command (300 second cooldown)
