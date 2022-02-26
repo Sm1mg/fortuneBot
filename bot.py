@@ -310,13 +310,13 @@ async def help(ctx, helpType=None):
 	# If the user wants help setting up the bot
 	if helpType == 'setup':
 		await send(ctx, 'Helping with Setup', """Simply run `f!channel` followed by the channel you want fortunes to be posted into. The bot will post in that channel on the next daily cycle!\n\n
-			If you want to set custom options, like the chance for a type of fortune to appear, use f!options with the options you want from https://linux.die.net/man/6/fortune.
+			If you want to set custom options, like the chance for a category of fortune to appear, use f!options with the options you want from https://linux.die.net/man/6/fortune.
 		""")
 		return
 	# List the bot's commands
 	elif helpType == 'commands':
 		embed = await getEmbed(ctx, 'Helping describe commands')
-		embed.add_field(name="fortunes:", value="Prints the types of fortune to be drawn from and the probability that it will be chosen with the current options.")
+		embed.add_field(name="fortunes:", value="Prints the categories of fortune to be drawn from and the probability that it will be chosen with the current options.")
 		embed.add_field(name="channel (channel):", value="Sets the channel the bot will post fortunes into. Usage example: `f!channel \#fortunes`")
 		embed.add_field(name="options (options):", value="Set options for fortunes in this server, use https://linux.die.net/man/6/fortune as a reference to what's supported. Usage example: `f!options -e startrek cookie`")
 		embed.add_field(name="feedback (message):", value="Allows you to send feedback to the developer of this bot. An example of the feedback command in use would look like 'r!feedback this bot is great!'")
@@ -455,11 +455,11 @@ async def options(ctx, *, arg=''):
 	# Make sure no restricted arguments try to pass
 	restricted = ["f", "m", "n", "w"]
 	for restriction in restricted:
-		for arg in args:
+		for a in args:
 			# If the first character is a dash
-			if arg[0] == "-":
+			if a[0] == "-":
 				# If the argument also has an illegal character
-				if arg.find(restriction) != -1:
+				if a.find(restriction) != -1:
 					await send(ctx, "Illegal options detected!", "The options `-f`, `-m`, `-n`, `-w`, and the character `/` are disabled for security reasons and cannot be set as options!")
 					return
 			
