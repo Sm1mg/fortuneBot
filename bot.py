@@ -363,15 +363,15 @@ async def fortunes(ctx):
 	# Remove first list entry if it's junk
 	if fortunes[0] == "100.00% /usr/share/games/fortunes":
 		fortunes.pop(0)
-	# Otherwise, get rid of the absolute directory
 
 	# Sort the array
 	fortunes.sort(reverse=True)
 
 	fortuneStr = ""
-	# Strip all spaces off of the string (and remove /usr/share/games/fortunes/)
+	# Strip all spaces off of the string
 	for fortune in fortunes:
-		fortune = fortune.replace("/usr/share/games/fortunes/", "").lstrip(" ")
+		fortune = fortune.replace("/usr/share/games/fortunes/", "")
+		fortune = fortune[4:]
 		fortuneStr += fortune + "\n"
 	await send(ctx, "Listing fortunes:", f"List of all fortune types and their chances of appearing with the current options:\n```{fortuneStr}```")
 
