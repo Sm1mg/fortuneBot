@@ -472,7 +472,7 @@ async def options(ctx, *, arg=''):
 			
 
 	# Redirect to /dev/null to supress output
-	result = subprocess.run(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+	result = subprocess.run(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode
 	if result != 0:
 		await send(ctx, "Something went wrong setting the options!", "The options you specified were not accepted by fortune.\n Please refer to https://linux.die.net/man/6/fortune for a list of all options.")
 		return
