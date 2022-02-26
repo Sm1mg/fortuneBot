@@ -12,7 +12,8 @@ import random
 print("Starting up...")
 # TODO backslash all user inputs when printing them on f!options
 # TODO set option to change prefix(?)
-# TODO TODO find a way to get ascii art to print properly in fortunes
+# TODO make prints different levels, log, warning, and err and color code them
+# TODO find a way to get ascii art to print properly in fortunes
 
 # Create database link
 db = sql.connect('database.db')
