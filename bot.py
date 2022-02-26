@@ -445,10 +445,6 @@ async def options(ctx, *, arg=''):
 
 	# The user definitely wants us to set options now
 
-	if arg.find("/") != -1:
-		await send(ctx, "Illegal options detected!", "The options `-f`, `-m`, `-n`, `-w`, and the character `/` are disabled for security reasons and cannot be set as options!")
-		return
-
 	# Split input into argument array
 	args = ['fortune'] + arg.split(" ")
 
@@ -460,7 +456,7 @@ async def options(ctx, *, arg=''):
 			if a[0] == "-":
 				# If the argument also has an illegal character
 				if a.find(restriction) != -1:
-					await send(ctx, "Illegal options detected!", "The options `-f`, `-m`, `-n`, `-w`, and the character `/` are disabled for security reasons and cannot be set as options!")
+					await send(ctx, "Illegal options detected!", "The options `-f`, `-m`, `-n`, and `-w` are disabled for security reasons and cannot be set as options!")
 					return
 			
 
