@@ -370,8 +370,7 @@ async def fortunes(ctx):
 	fortuneStr = ""
 	# Strip all spaces off of the string
 	for fortune in fortunes:
-		fortune = fortune.replace("/usr/share/games/fortunes/", "")
-		fortune = fortune.replace("/usr/share/games/fortunes", "")
+		fortune = fortune.replace("/usr/share/games/", "")
 		fortune = fortune.lstrip(" ")
 		fortuneStr += fortune + "\n"
 	await send(ctx, "Listing fortunes:", f"List of all fortune types and their chances of appearing with the current options:\n```{fortuneStr}```")
