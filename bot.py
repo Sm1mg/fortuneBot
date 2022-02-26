@@ -284,7 +284,7 @@ async def fortune():
 		result = subprocess.run(args, stdout=subprocess.PIPE, text=True).stdout
 		embed = discord.Embed(
 			title='Daily fortune:',
-			description=result,
+			description="```"+result+"```",
 			color=await getRandomHex(guild.id)
 		)
 		embed.set_author(
