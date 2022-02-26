@@ -1,3 +1,4 @@
+from cgitb import text
 from dotenv import load_dotenv
 from datetime import datetime
 from discord.ext import commands, tasks
@@ -285,7 +286,7 @@ async def fortune():
 			continue
 		
 		# Execute fortune with the guild's options
-		result = subprocess.run(args, stdout=subprocess.PIPE).stdout.decode('utf-8')
+		result = subprocess.run(args, stdout=subprocess.PIPE, text=True).stdout
 		embed = discord.Embed(
 			title='Daily fortune:',
 			description=result,
@@ -353,8 +354,16 @@ async def setup(ctx):
 @commands.has_permissions(manage_channels=True)
 @commands.cooldown(1,5,commands.BucketType.user)
 async def fortunes(ctx):
-	fortunes = subprocess.run(['fortune', '-f'], stdout=subprocess.PIPE).stdout.decode('utf-8')
-	await send(ctx, "[List of all fortune types and their chances of appearing:", fortunes)
+	fortunes = subprocess.run(['fortune', '-f'], stderr=subprocess.PIPE, text=True).stderr.split("\n")
+	# Remove first list entry
+	fortunes.pop(0)
+
+	fortuneStr = ""
+	# Strip all spaces off of the string
+	for fortune in fortunes:
+		fortune = fortune.lstrip(" ")
+		fortuneStr += fortune + "\n"
+	await send(ctx, "List of all fortune types and their chances of appearing:", f"```{fortuneStr}```")
 
 
 # Sets the channel the bot uses for fortunes
@@ -454,8 +463,8 @@ async def options(ctx, *, arg=''):
 					return
 			
 
-
-	result = subprocess.call(args)
+	# Redirect to /dev/null to supress output
+	result = subprocess.run(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 	if result != 0:
 		await send(ctx, "Something went wrong setting the options!", "The options you specified were not accepted by fortune.\n Please refer to https://linux.die.net/man/6/fortune for a list of all options.")
 		return
