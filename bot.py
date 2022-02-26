@@ -6,6 +6,7 @@ import sqlite3 as sql
 import os
 import subprocess
 import discord
+import asyncio
 import random
 [4, 8, 15, 16, 23, 42]
 print("Starting up...")
@@ -53,7 +54,7 @@ async def getEmbed(ctx, title='', content='', footer=''):
 # Creates and sends an Embed message
 async def send(ctx, title='', content='', footer=''):
 	embed = await getEmbed(ctx, title, content, footer)
-	await ctx.send(embed=embed)
+	return await ctx.send(embed=embed)
 
 # Make sure tables exist for all servers bot is in
 async def updateDB():
@@ -373,8 +374,10 @@ async def fortunes(ctx):
 		fortune = fortune.replace("/usr/share/games/", "")
 		fortune = fortune.lstrip(" ")
 		fortuneStr += fortune + "\n"
-	await send(ctx, "Listing fortunes:", f"List of all fortune types and their chances of appearing with the current options:\n```{fortuneStr}```")
-
+	message = await send(ctx, "Listing fortunes:", f"List of all fortune types and their chances of appearing with the current options:\n```{fortuneStr}```")
+	embed = await getEmbed(ctx, "Listing fortunes:", "Fortunes have been hidden to keep chat clean.")
+	await asyncio.sleep(30)
+	await message.edit(embed=embed)
 
 # Sets the channel the bot uses for fortunes
 @bot.command()
