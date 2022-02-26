@@ -360,8 +360,12 @@ async def fortunes(ctx):
 		args.append(options.split(" "))
 
 	fortunes = subprocess.run(args, stderr=subprocess.PIPE, text=True).stderr.split("\n")
-	# Remove first list entry
-	fortunes.pop(0)
+	# Remove first list entry if it's junk
+	if fortunes[0] == "100.00% /usr/share/games/fortunes":
+		fortunes.pop(0)
+	# Otherwise, get rid of the absolute directory
+	else:
+		fortunes[0].replace("/usr/share/games/fortunes/", "")
 
 	# Sort the array
 	fortunes.sort(reverse=True)
@@ -496,7 +500,7 @@ async def feedback(ctx, *, arg=''):
 	if arg is None:
 		await send(ctx, 'This command requires an argument.')
 		return
-	cursor.execute('INSERT INTO feedback (server, user, message) VALUES (?, ?, ?)', (int(ctx.guild.id), int(ctx.message.author.id), str(ctx.message.content)))
+	cursor.execute('INSERT INTO feedback (server, user, message) VALUES (?, ?, ?)', (int(ctx.guild.id), int(ctx.message.author.id), str(arg)))
 	db.commit()
 	await send(ctx, 'Thanks!', 'Your feedback is appreciated, thank you!')
 
