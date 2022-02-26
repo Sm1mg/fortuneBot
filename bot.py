@@ -36,7 +36,6 @@ async def getRandomHex(seed):
 	return random.randint(0, 16777215)
 
 
-
 # Creates a standard Embed object
 async def getEmbed(ctx, title='', content='', footer=''):
 	embed = discord.Embed(
@@ -49,7 +48,6 @@ async def getEmbed(ctx, title='', content='', footer=''):
 	# TODO Hide the footer until i find out what to do with it
 	# embed.set_footer(footer=footer)
 	return embed
-
 
 
 # Creates and sends an Embed message
@@ -100,7 +98,6 @@ async def refreshStatus():
 		type=discord.ActivityType.watching, name=f"for f! in {servers:,} servers!"))
 
 
-
 # Build database tables if they don't already exist
 async def buildtables():
 	cursor.execute(
@@ -139,7 +136,6 @@ async def buildtables():
 			);
 		""")
 		db.commit()
-
 
 
 # When bot connects to Discord
@@ -354,16 +350,28 @@ async def setup(ctx):
 @commands.has_permissions(manage_channels=True)
 @commands.cooldown(1,5,commands.BucketType.user)
 async def fortunes(ctx):
-	fortunes = subprocess.run(['fortune', '-f'], stderr=subprocess.PIPE, text=True).stderr.split("\n")
+	cursor.execute("SELECT options FROM Servers WHERE id=?", (ctx.guild.id,))
+	options = cursor.fetchone()[0]
+
+	args = ['fortune', '-f']
+
+	# If the server has options set, show what it looks like with those options
+	if options is not None:
+		args.append(options.split(" "))
+
+	fortunes = subprocess.run(args, stderr=subprocess.PIPE, text=True).stderr.split("\n")
 	# Remove first list entry
 	fortunes.pop(0)
+
+	# Sort the array
+	fortunes.sort(reverse=True)
 
 	fortuneStr = ""
 	# Strip all spaces off of the string
 	for fortune in fortunes:
 		fortune = fortune.lstrip(" ")
 		fortuneStr += fortune + "\n"
-	await send(ctx, "List of all fortune types and their chances of appearing:", f"```{fortuneStr}```")
+	await send(ctx, "Listing fortunes:", f"List of all fortune types and their chances of appearing with the current options:\n```{fortuneStr}```")
 
 
 # Sets the channel the bot uses for fortunes
