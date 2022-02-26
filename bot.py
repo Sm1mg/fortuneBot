@@ -283,9 +283,12 @@ async def fortune():
 		
 		# Execute fortune with the guild's options
 		result = subprocess.run(args, stdout=subprocess.PIPE, text=True).stdout
+
+		result = result.replace('```', '\`\`\`')
+
 		embed = discord.Embed(
 			title='Daily fortune:',
-			description=f"```{result.replace('```', '\`\`\`')}```",
+			description=f"```{result}```",
 			color=await getRandomHex(guild.id)
 		)
 		embed.set_author(
