@@ -361,18 +361,15 @@ async def fortunes(ctx):
 		args += options.split(" ")
 
 	fortunes = subprocess.run(args, stderr=subprocess.PIPE, text=True).stderr.split("\n")
-	# Remove first list entry if it's junk
-	if fortunes[0] == "100.00% /usr/share/games/fortunes":
-		fortunes.pop(0)
 
 	# Sort the array
-	fortunes.sort(reverse=True)
+#	fortunes.sort(reverse=True)
 
 	fortuneStr = ""
 	# Strip all spaces off of the string
 	for fortune in fortunes:
 		fortune = fortune.replace("/usr/share/games/", "")
-		fortune = fortune.lstrip(" ")
+#		fortune = fortune.lstrip(" ")
 		fortuneStr += fortune + "\n"
 	message = await send(ctx, "Listing fortunes:", f"List of all fortune types and their chances of appearing with the current options:\n```{fortuneStr}```")
 	embed = await getEmbed(ctx, "Listing fortunes:", "Fortunes have been hidden to keep chat clean.")
