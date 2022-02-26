@@ -274,7 +274,7 @@ async def fortune():
 
 		# If there are options set
 		if options is not None:
-			args.append(options.split(" "))
+			args += options.split(" ")
 
 		# If we couldn't find the channel for fortunes
 		if ctx is None:
@@ -357,7 +357,7 @@ async def fortunes(ctx):
 
 	# If the server has options set, show what it looks like with those options
 	if options is not None:
-		args.append(options.split(" "))
+		args += options.split(" ")
 
 	fortunes = subprocess.run(args, stderr=subprocess.PIPE, text=True).stderr.split("\n")
 	# Remove first list entry if it's junk
