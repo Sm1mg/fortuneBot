@@ -348,6 +348,15 @@ async def setup(ctx):
 
 #End Help
 
+# List all fortunes
+@bot.command(aliases=['list', 'fortune'])
+@commands.has_permissions(manage_channels=True)
+@commands.cooldown(1,5,commands.BucketType.user)
+async def fortunes(ctx):
+	fortunes = subprocess.run(['fortune', '-f'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+	await send(ctx, "[List of all fortune types and their chances of appearing:", fortunes)
+
+
 # Sets the channel the bot uses for fortunes
 @bot.command()
 @commands.has_permissions(manage_channels=True)
