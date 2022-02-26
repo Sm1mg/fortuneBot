@@ -10,7 +10,7 @@ import random
 print("Starting up...")
 # TODO backslash all user inputs when printing them on f!options
 # TODO set option to change prefix(?)
-# TODO subprocess.call takes all as one option, thus users cannot provide multiple options -- what do?
+# TODO make function to list all fortune files
 
 # Create database link
 db = sql.connect('database.db')
@@ -285,7 +285,7 @@ async def fortune():
 			continue
 		
 		# Execute fortune with the guild's options
-		result = str(subprocess.run(args, stdout=subprocess.PIPE).stdout).decode('utf-8')
+		result = subprocess.run(args, stdout=subprocess.PIPE).stdout.decode('utf-8')
 		embed = discord.Embed(
 			title='Daily fortune:',
 			description=result,
@@ -405,7 +405,7 @@ async def channel(ctx, *, arg=''):
 async def options(ctx, *, arg=''):
 
 	# If user does not provide any options
-	if arg == '' or arg.find("/") != -1:
+	if arg == '':
 		cursor.execute("SELECT options FROM Servers WHERE id=?", (ctx.guild.id,))
 		options = cursor.fetchone()[0]
 		# If there are options set
@@ -426,12 +426,23 @@ async def options(ctx, *, arg=''):
 
 	# The user definitely wants us to set options now
 
+	if arg.find("/") != -1:
+		await send(ctx, "Illegal options detected!", "The options `-f`, `-m`, `-n`, `-w`, and the character `/` are disabled for security reasons and cannot be set as options!")
+		return
+
 	# Split input into argument array
 	args = ['fortune'] + arg.split(" ")
+
+	# Make sure no restricted arguments try to pass
+	restricted = ["-f", "-m", "-n", "-w"]
+	for restriction in restricted:
+		if restriction in args:
+			await send(ctx, "Illegal options detected!", "The options `-f`, `-m`, `-n`, `-w`, and the character `/` are disabled for security reasons and cannot be set as options!")
+			return
+
 	result = subprocess.call(args)
-	print(result)
 	if result != 0:
-		await send(ctx, "Something went wrong setting the options!", "The options you specified were not accepted by fortune.\n Please refer to https://linux.die.net/man/6/fortune")
+		await send(ctx, "Something went wrong setting the options!", "The options you specified were not accepted by fortune.\n Please refer to https://linux.die.net/man/6/fortune for a list of all options.")
 		return
 	cursor.execute("UPDATE Servers SET options=? WHERE id=?", (arg, ctx.guild.id))
 	db.commit()
