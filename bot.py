@@ -321,7 +321,7 @@ async def help(ctx, helpType=None):
 	# List the bot's commands
 	elif helpType == 'commands':
 		embed = await getEmbed(ctx, 'Helping describe commands')
-		embed.add_field(name="fortunes:", value="Prints the categories of fortune to be drawn from and the probability that it will be chosen with the current options.")
+		embed.add_field(name="fortunes:", value="Prints the categories of fortune to be drawn from and the % chance that it will be chosen with the current options.")
 		embed.add_field(name="channel (channel):", value="Sets the channel the bot will post fortunes into. Usage example: `f!channel \#fortunes`")
 		embed.add_field(name="options (options):", value="Set options for fortunes in this server, use https://linux.die.net/man/6/fortune as a reference to what's supported. Usage example: `f!options -e startrek cookie`")
 		embed.add_field(name="feedback (message):", value="Allows you to send feedback to the developer of this bot. An example of the feedback command in use would look like 'r!feedback this bot is great!'")
@@ -367,7 +367,7 @@ async def fortunes(ctx):
 
 	fortunes = subprocess.run(args, stderr=subprocess.PIPE, text=True).stderr.replace("/usr/share/games/", "")
 
-	message = await send(ctx, "Listing fortunes:", f"List of all fortune files and their chances of appearing with the options `{options}`:\n```{fortunes}```")
+	message = await send(ctx, "Listing fortunes:", f"List fortune categories and % chances with the options `{options}`:\n```{fortunes}```")
 	embed = await getEmbed(ctx, "Listing fortunes:", "Fortunes have been hidden to keep chat clean.")
 	await asyncio.sleep(300)
 	await message.edit(embed=embed)
