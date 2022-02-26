@@ -434,11 +434,17 @@ async def options(ctx, *, arg=''):
 	args = ['fortune'] + arg.split(" ")
 
 	# Make sure no restricted arguments try to pass
-	restricted = ["-f", "-m", "-n", "-w"]
+	restricted = ["f", "m", "n", "w"]
 	for restriction in restricted:
-		if restriction in args:
-			await send(ctx, "Illegal options detected!", "The options `-f`, `-m`, `-n`, `-w`, and the character `/` are disabled for security reasons and cannot be set as options!")
-			return
+		for arg in args:
+			# If the first character is a dash
+			if arg[0] == "-":
+				# If the argument also has an illegal character
+				if arg.find(restriction) != -1:
+					await send(ctx, "Illegal options detected!", "The options `-f`, `-m`, `-n`, `-w`, and the character `/` are disabled for security reasons and cannot be set as options!")
+					return
+			
+
 
 	result = subprocess.call(args)
 	if result != 0:
