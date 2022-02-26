@@ -365,7 +365,7 @@ async def fortunes(ctx):
 		fortunes.pop(0)
 	# Otherwise, get rid of the absolute directory
 	else:
-		fortunes[0].replace("/usr/share/games/fortunes/", "")
+		fortunes[0] = fortunes[0].replace("/usr/share/games/fortunes/", "")
 
 	# Sort the array
 	fortunes.sort(reverse=True)
