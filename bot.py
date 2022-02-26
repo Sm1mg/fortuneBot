@@ -12,6 +12,7 @@ import random
 print("Starting up...")
 # TODO backslash all user inputs when printing them on f!options
 # TODO set option to change prefix(?)
+# TODO TODO find a way to get ascii art to print properly in fortunes
 
 # Create database link
 db = sql.connect('database.db')
@@ -284,7 +285,7 @@ async def fortune():
 		result = subprocess.run(args, stdout=subprocess.PIPE, text=True).stdout
 		embed = discord.Embed(
 			title='Daily fortune:',
-			description="```"+result+"```",
+			description=f"```{result.replace('```', '\`\`\`')}```",
 			color=await getRandomHex(guild.id)
 		)
 		embed.set_author(
