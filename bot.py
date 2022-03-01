@@ -285,7 +285,10 @@ async def fortune():
 		# Execute fortune with the guild's options
 		result = subprocess.run(args, stdout=subprocess.PIPE, text=True).stdout
 
-		result = result.replace('```', '\`\`\`')
+		# Replace poor formatting
+		result = result.replace('`', '\`')
+		result = result.replace('	', '    ')
+		result = result.replace('%\n', '\n')
 
 		embed = discord.Embed(
 			title='Daily fortune:',
