@@ -156,7 +156,7 @@ async def on_ready():
 async def on_command_error(ctx, error):
 	# If an unknown command is issued
 	if isinstance(error, discord.ext.commands.errors.CommandNotFound):
-		await send(ctx, 'Command not found:', f'{str(error)} is not a valid command, please refer to %help for a list of commands.')
+		await send(ctx, 'Command not found:', f'{str(error)} is not a valid command, please refer to f!help for a list of commands.')
 		return
 
 	# If the bot doesn't have high enough permissions to do something
@@ -166,7 +166,7 @@ async def on_command_error(ctx, error):
 		embed.add_field(name='What went wrong:',
 						value="This error appears when the bot doesn't have the permissions it needs.  This is likely caused by the order of roles in this server.", inline=True)
 		embed.add_field(name='How to fix it:',
-						value=f"Most likely you can fix this by moving the role created for the bot ({ctx.guild.self_role.mention}) to the top of your server's role list.  If the issue persists, feel free to submit a bug report with r!feedback!", inline=True)
+						value=f"Most likely you can fix this by moving the role created for the bot ({ctx.guild.self_role.mention}) to the top of your server's role list.  If the issue persists, feel free to submit a bug report with f!feedback!", inline=True)
 		await ctx.send(embed=embed)
 		return
 
@@ -180,7 +180,7 @@ async def on_command_error(ctx, error):
 		await send(ctx, 'Insufficient permissions:', 'You do not have the required permissions to run this command.')
 	# If we're being ratelimited (uh oh)
 	if isinstance(error, discord.HTTPException):
-		await send(ctx, "The bot is currently being ratelimited!", "Please report this to the developer with r!feedback alongside what you were doing to cause this!")
+		await send(ctx, "The bot is currently being ratelimited!", "Please report this to the developer with f!feedback alongside what you were doing to cause this!")
 		print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 		print("being ratelimited fuck fuck fuck")
 		print(error)
@@ -189,7 +189,7 @@ async def on_command_error(ctx, error):
 	print(error)
 	# Send generic error message if none of the above apply
 	embed = await getEmbed(ctx, 'Oops!  Something just went wrong...', error)
-	embed.add_field(name='Bug Reports:', value="If this looks like it's a bug, please report it with r!feedback!  Make sure to include details on how to reproduce the bug and I'll patch it as soon as I can!", inline=False)
+	embed.add_field(name='Bug Reports:', value="If this looks like it's a bug, please report it with f!feedback!  Make sure to include details on how to reproduce the bug and I'll patch it as soon as I can!", inline=False)
 	await ctx.send(embed=embed)
 	raise error
 
@@ -327,7 +327,7 @@ async def help(ctx, helpType=None):
 		embed.add_field(name="fortunes:", value="Prints the categories of fortune to be drawn from and the % chance that it will be chosen with the current options.")
 		embed.add_field(name="channel (channel):", value="Sets the channel the bot will post fortunes into. Usage example: `f!channel \#fortunes`")
 		embed.add_field(name="options (options):", value="Set options for fortunes in this server, use https://linux.die.net/man/6/fortune as a reference to what's supported. Usage example: `f!options -e startrek cookie`")
-		embed.add_field(name="feedback (message):", value="Allows you to send feedback to the developer of this bot. An example of the feedback command in use would look like 'r!feedback this bot is great!'")
+		embed.add_field(name="feedback (message):", value="Allows you to send feedback to the developer of this bot. An example of the feedback command in use would look like 'f!feedback this bot is great!'")
 		await ctx.send(embed=embed)
 		return
 	# If no helpType is asked for
@@ -529,7 +529,7 @@ async def replyFeedback(ctx, feedbackIndex, *, message="The developer fucked up 
 			if len(entry[3]) > 21:
 				feedbackMsg += '...'
 			embed = await getEmbed(ctx, f"Reply from developer about your post `{feedbackMsg}` in `{guild.name}`:", message)
-			embed.add_field(name='A quick note:', value='Please note that any responses you make in DMs do not go back to the developer, if you need to make a follow-up message please send r!feedback, preferably in the same server you sent the first message.', inline=False)
+			embed.add_field(name='A quick note:', value='Please note that any responses you make in DMs do not go back to the developer, if you need to make a follow-up message please send f!feedback, preferably in the same server you sent the first message.', inline=False)
 			await user.send(embed=embed)
 			await send(ctx, 'Message sent!')
 			break
