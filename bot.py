@@ -11,9 +11,12 @@ import random
 [4, 8, 15, 16, 23, 42]
 print("Starting up...")
 # TODO backslash all user inputs when printing them on f!options
-# TODO set option to change prefix(?)
-# TODO make prints different levels, log, warning, and err and color code them
-# TODO find a way to get ascii art to print properly in fortunes
+# TODO 2 set option to change prefix(?)
+# TODO 4 make prints different levels, log, warning, and err and color code them
+# TODO 5 find a way to get ascii art to print properly in fortunes
+# TODO 6 favorite fortunes command, sends in dms
+
+
 
 # Create database link
 db = sql.connect('database.db')
@@ -469,9 +472,18 @@ async def options(ctx, *, arg=''):
 			
 
 	# Redirect to /dev/null to supress output
-	result = subprocess.run(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode
-	if result != 0:
-		await send(ctx, "Something went wrong setting the options!", "The options you specified were not accepted by fortune.\n Please refer to https://linux.die.net/man/6/fortune for a list of all options.")
+	fortuneCall = subprocess.run(args, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+
+	# If the return code indicates an error
+	if fortuneCall.returncode != 0:
+		# Format stderr for printing
+		stderr = fortuneCall.stderr.decode("utf-8").replace('\\n', '\n').replace('\\t', '\t')
+
+		embed = await getEmbed(ctx, "Something went wrong setting the options!", 
+		"""The options you specified were not accepted by fortune.\n 
+		Please refer to https://linux.die.net/man/6/fortune for a list of all options.""")
+		embed.add_field(name="Error:", value="```" + stderr + "```", inline=True)
+		await ctx.send(embed=embed)
 		return
 	cursor.execute("UPDATE Servers SET options=? WHERE id=?", (arg, ctx.guild.id))
 	db.commit()
