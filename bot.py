@@ -356,7 +356,7 @@ async def setup(ctx):
 
 # List all fortunes
 @bot.command(aliases=['list', 'fortune'])
-@commands.has_permissions(manage_channels=True)
+@commands.has_guild_permissions(manage_channels=True)
 @commands.cooldown(1,5,commands.BucketType.user)
 async def fortunes(ctx):
 	cursor.execute("SELECT options FROM Servers WHERE id=?", (ctx.guild.id,))
@@ -377,7 +377,7 @@ async def fortunes(ctx):
 
 # Sets the channel the bot uses for fortunes
 @bot.command()
-@commands.has_permissions(manage_channels=True)
+@commands.has_guild_permissions(manage_channels=True)
 @commands.cooldown(1,5,commands.BucketType.user)
 async def channel(ctx, *, arg=''):
 	# Pull guild's channel
@@ -427,7 +427,7 @@ async def channel(ctx, *, arg=''):
 
 
 @bot.command(aliases=['option', 'setoptions'])
-@commands.has_permissions(manage_channels=True)
+@commands.has_guild_permissions(manage_channels=True)
 @commands.cooldown(1,5,commands.BucketType.user)
 async def options(ctx, *, arg=''):
 
