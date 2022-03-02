@@ -12,7 +12,6 @@ import random
 print("Starting up...")
 # TODO 2 set option to change prefix(?)
 # TODO 4 make prints different levels, log, warning, and err and color code them
-# TODO 5 find a way to get ascii art to print properly in fortunes
 # TODO 6 favorite fortunes command, sends in dms
 # TODO 8 create a function that sends a fortune from guild id, channel id, options
 
@@ -72,7 +71,7 @@ async def updateDB():
 	for guild in guilds:
 		if guild.id not in guildID:
 			print(f"guild {guild.name} was not in db, adding.")
-			cursor.execute('INSERT INTO Servers (id, channel, options) VALUES (?, ?, ?)', (guild.id, -1, None))
+			cursor.execute('INSERT INTO Servers (id) VALUES (?)', (guild.id))
 			db.commit()
 
 	# Check for servers that shouldn't be in db
@@ -111,7 +110,8 @@ async def buildtables():
 			CREATE TABLE Servers (
 			id INTEGER KEY,
 			channel INTEGER,
-			options STRING
+			options STRING,
+			last STRING
 			);
 		""")
 		db.commit()
@@ -213,7 +213,7 @@ async def on_guild_join(guild):
 	cursor.execute('SELECT id FROM Servers')
 	serverList = cursor.fetchall()
 	if (guild.id, ) not in serverList:
-		cursor.execute('INSERT INTO Servers (id, channel, options) VALUES (?, ?, ?)', (guild.id, -1, None))
+		cursor.execute('INSERT INTO Servers (id) VALUES (?)', (guild.id))
 		db.commit()
 		# Update the status to match
 		await refreshStatus()
@@ -248,6 +248,12 @@ async def on_guild_remove(guild):
 	# Update the status to match
 	await refreshStatus()
 
+#WIP
+# When a reaction is added to a message
+@bot.event
+async def on_raw_reaction_add()
+	
+
 ##
 ## Tasks
 ##
@@ -268,7 +274,6 @@ async def fortune():
 	servers = cursor.fetchall()
 	# Loop through every server in the database
 	for server in servers:
-		guild = bot.get_guild(server[0])
 		ctx = bot.get_channel(server[1])
 		options = server[2]
 
@@ -288,7 +293,7 @@ async def fortune():
 		result = subprocess.run(args, stdout=subprocess.PIPE, text=True).stdout
 
 		# Replace poor formatting
-		#TODO find a better solution than ``` -> '''
+		# TODO 3 find a better solution than ``` -> '''
 		result = result.replace('```', "'''")
 		result = result.replace('\t', '        ')
 		# If there's just a % on a line (it's junk data)
@@ -297,13 +302,16 @@ async def fortune():
 		embed = discord.Embed(
 			title='Daily fortune:',
 			description=f"```{result}```",
-			color=await getRandomHex(guild.id)
+			color=await getRandomHex(server[0])
 		)
 		embed.set_author(
-			name=guild.name,
-			icon_url=guild.icon_url
+			name=ctx.guild.name,
+			icon_url=ctx.guild.icon_url
 		)
 		await ctx.send(embed=embed)
+
+		cursor.execute("UPDATE Servers SET last=? WHERE id=?", (result, server[0]))
+		db.commit()
 	# Refresh the bot's status just for fun
 	await refreshStatus()
 
@@ -328,6 +336,7 @@ async def help(ctx, helpType=None):
 	# List the bot's commands
 	elif helpType == 'commands':
 		embed = await getEmbed(ctx, 'Helping describe commands')
+		embed.add_field(name="favorite:", value="Favorites the last sent fortune in the server. (Favoriting just sends it to you in DMs)  Usage example: `f!favorite`")
 		embed.add_field(name="fortunes:", value="Prints the categories of fortune to be drawn from and the % chance that it will be chosen with the current options.")
 		embed.add_field(name="channel (channel):", value="Sets the channel the bot will post fortunes into. Usage example: `f!channel \#fortunes`")
 		embed.add_field(name="options (options):", value="Set options for fortunes in this server, use https://linux.die.net/man/6/fortune as a reference to what's supported. Usage example: `f!options -e startrek cookie`")
@@ -390,16 +399,16 @@ async def channel(ctx, *, arg=''):
 	storedChannel = ctx.guild.get_channel(channelID)
 
 	# If we can't find the channel but it has been set
-	if storedChannel is None and channelID != -1:
+	if storedChannel is None and channelID != None:
 		print('channel was deleted')
-		chan = -1
+		chan = None
 		cursor.execute('UPDATE Servers SET channel=? WHERE id=?', (chan, ctx.guild.id))
 		db.commit()
 
 	# If there isn't a channel mentioned
 	if not ctx.message.channel_mentions:
 		# If we don't already have a channel set
-		if channelID == -1:
+		if channelID is None:
 			await send(ctx, 'There is no channel set.', 'Please mention a channel for the bot to post fortunes into.')
 			return
 		# If we do, say what it is
@@ -419,7 +428,7 @@ async def channel(ctx, *, arg=''):
 		return
 
 	# Checks if this is the first time entering a channel
-	if storedChannel is None or channelID == -1:
+	if storedChannel is None or channelID is None:
 		suffix = f'to `{channel.name}`'
 	else:
 		suffix = f'from `{storedChannel.name}` to `{channel.name}`'
@@ -489,6 +498,20 @@ async def options(ctx, *, arg=''):
 	cursor.execute("UPDATE Servers SET options=? WHERE id=?", (arg, ctx.guild.id))
 	db.commit()
 	await send(ctx, "Success!", f"The option{'s' if len(args) > 2 else ''} `{arg}` have been successfully set.")
+
+
+# TODO 9 add to help
+# TODO 10 have last update from fortune task
+@bot.command(aliases=['save'])
+@commands.cooldown(1,1200,commands.BucketType.user)
+async def favorite(ctx):
+	cursor.execute("SELECT last FROM Servers WHERE id=?", (ctx.guild.id,))
+	last = cursor.fetchone()[0][0]
+	if last is None:
+		await send(ctx, "Error favoriting fortune:", "There have not been any fortunes sent in this server!")
+		return
+	await send(ctx.author, f"Favorited fortune from {ctx.guild.name}:", "```" + last + "```")
+	await send(ctx, "Fortune favorited!")
 
 
 # Feedback command (300 second cooldown)
@@ -643,10 +666,11 @@ import discord.ext.commands.errors
 @bot.command()
 async def cum(ctx):
 	if ctx.author.id != 334836951037509634:
-		raise discord.ext.commands.errors.CommandNotFound(message="f!sus")
+		raise discord.ext.commands.errors.CommandNotFound(message='Command "sus"')
 	if ctx.guild.voice_client is not None:
 		print('already in vc, leaving.')
 		await ctx.voice_client.disconnect()
+		return
 	authorStatus = ctx.author.voice
 	if authorStatus is None or ctx.author.voice.channel is None:
 		await ctx.send('join vc and run again')
