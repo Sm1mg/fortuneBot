@@ -288,7 +288,7 @@ async def fortune():
 		result = subprocess.run(args, stdout=subprocess.PIPE, text=True).stdout
 
 		# Replace poor formatting
-		result = result.replace('`', '\`')
+		result = result.replace('```', "'''")
 		result = result.replace('\t', '        ')
 		result = result.replace('%\n', '\n')
 
