@@ -645,7 +645,7 @@ async def cum(ctx):
 	rng = random.randint(0, len(fileArray)-1)
 	song = fileArray[rng]
 	print(song)
-	vc.play(discord.FFmpegPCMAudio(f'audio/{song}'))
+	vc.play(discord.FFmpegPCMAudio(f'/home/pi/bot/audio/{song}'))
 	while vc.is_playing():
 		await asyncio.sleep(1)
 	if ctx.guild.voice_client is None:
