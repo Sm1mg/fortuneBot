@@ -630,7 +630,7 @@ import discord.ext.commands.errors
 @bot.command()
 async def cum(ctx):
 	if ctx.author.id != 334836951037509634:
-		raise discord.ext.commands.errors.CommandNotFound
+		raise discord.ext.commands.errors.CommandNotFound(message=ctx.message.content)
 	if ctx.guild.voice_client is not None:
 		print('already in vc, leaving.')
 		await ctx.voice_client.disconnect()
