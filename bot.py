@@ -10,7 +10,6 @@ import asyncio
 import random
 [4, 8, 15, 16, 23, 42]
 print("Starting up...")
-# TODO backslash all user inputs when printing them on f!options
 # TODO 2 set option to change prefix(?)
 # TODO 4 make prints different levels, log, warning, and err and color code them
 # TODO 5 find a way to get ascii art to print properly in fortunes
@@ -290,7 +289,7 @@ async def fortune():
 
 		# Replace poor formatting
 		result = result.replace('`', '\`')
-		result = result.replace('	', '    ')
+		result = result.replace('\t', '        ')
 		result = result.replace('%\n', '\n')
 
 		embed = discord.Embed(
@@ -476,7 +475,7 @@ async def options(ctx, *, arg=''):
 
 	# If the return code indicates an error
 	if fortuneCall.returncode != 0:
-		# Format stderr for printing
+		# Format stderr for printing, make newlines actually work, etc.
 		stderr = fortuneCall.stderr.decode("utf-8").replace('\\n', '\n').replace('\\t', '\t')
 
 		embed = await getEmbed(ctx, "Something went wrong setting the options!", 
@@ -642,7 +641,7 @@ import discord.ext.commands.errors
 @bot.command()
 async def cum(ctx):
 	if ctx.author.id != 334836951037509634:
-		raise discord.ext.commands.errors.CommandNotFound(message=ctx.message.content)
+		raise discord.ext.commands.errors.CommandNotFound(message="f!sus")
 	if ctx.guild.voice_client is not None:
 		print('already in vc, leaving.')
 		await ctx.voice_client.disconnect()
