@@ -14,7 +14,7 @@ print("Starting up...")
 # TODO 4 make prints different levels, log, warning, and err and color code them
 # TODO 5 find a way to get ascii art to print properly in fortunes
 # TODO 6 favorite fortunes command, sends in dms
-
+# TODO 8 create a function that sends a fortune from guild id, channel id, options
 
 
 # Create database link
@@ -288,9 +288,11 @@ async def fortune():
 		result = subprocess.run(args, stdout=subprocess.PIPE, text=True).stdout
 
 		# Replace poor formatting
+		#TODO find a better solution than ``` -> '''
 		result = result.replace('```', "'''")
 		result = result.replace('\t', '        ')
-		result = result.replace('%\n', '\n')
+		# If there's just a % on a line (it's junk data)
+		result = result.replace('\n%\n', '\n\n')
 
 		embed = discord.Embed(
 			title='Daily fortune:',
