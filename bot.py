@@ -641,7 +641,7 @@ async def cum(ctx):
 		return
 	voice_channel = ctx.author.voice.channel
 	vc = await voice_channel.connect()
-	fileArray = os.listdir('../bot/audio/')
+	fileArray = os.listdir('/home/pi/bot/audio/')
 	rng = random.randint(0, len(fileArray)-1)
 	song = fileArray[rng]
 	print(song)
