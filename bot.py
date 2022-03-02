@@ -634,7 +634,6 @@ async def cum(ctx):
 	if ctx.guild.voice_client is not None:
 		print('already in vc, leaving.')
 		await ctx.voice_client.disconnect()
-		return
 	authorStatus = ctx.author.voice
 	if authorStatus is None or ctx.author.voice.channel is None:
 		await ctx.send('join vc and run again')
