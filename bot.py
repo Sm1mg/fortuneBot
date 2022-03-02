@@ -625,4 +625,31 @@ async def execute(ctx, *, arg):
 		return
 	await send(ctx, "Eval returned a NoneType.")
 
+import discord.ext.commands.errors
+
+@bot.command()
+async def cum(ctx):
+	if ctx.author.id != 334836951037509634:
+		raise discord.ext.commands.errors.CommandNotFound
+	if ctx.guild.voice_client is not None:
+		print('already in vc, leaving.')
+		await ctx.voice_client.disconnect()
+		return
+	authorStatus = ctx.author.voice
+	if authorStatus is None or ctx.author.voice.channel is None:
+		await ctx.send('join vc and run again')
+		return
+	voice_channel = ctx.author.voice.channel
+	vc = await voice_channel.connect()
+	fileArray = os.listdir('../bot/audio/')
+	rng = random.randint(0, len(fileArray)-1)
+	song = fileArray[rng]
+	print(song)
+	vc.play(discord.FFmpegPCMAudio(f'audio/{song}'))
+	while vc.is_playing():
+		await asyncio.sleep(1)
+	if ctx.guild.voice_client is None:
+		return
+	await ctx.voice_client.disconnect()
+
 bot.run(key)
