@@ -255,6 +255,8 @@ async def on_raw_reaction_add(payload):
 	if payload.user_id == bot.user.id:
 		return
 
+	#TODO 15 fix V, it always triggers
+	#https://discordpy.readthedocs.io/en/stable/api.html?highlight=on_raw_react#discord.RawReactionActionEvent.emoji
 	# If it's an emoji we don't care about
 	emojis = ["🌟", "❌"]
 	if payload.emoji not in emojis:
