@@ -11,7 +11,6 @@ import random
 print("Starting up...")
 # TODO 2 set option to change prefix(?)
 # TODO 4 make prints different levels, log, warning, and err and color code them
-# TODO 6 favorite fortunes command, sends in dms
 # TODO 8 create a function that sends a fortune from guild id, channel id, options
 
 
@@ -38,7 +37,6 @@ async def getRandomHex(seed):
 	random.seed(seed)
 	return random.randint(0, 16777215)
 
-
 # Creates a standard Embed object
 async def getEmbed(ctx, title='', content='', footer=''):
 	embed = discord.Embed(
@@ -50,7 +48,6 @@ async def getEmbed(ctx, title='', content='', footer=''):
 					 icon_url=ctx.author.avatar_url)
 	# embed.set_footer(footer=footer)
 	return embed
-
 
 # Creates and sends an Embed message
 async def send(ctx, title='', content='', footer=''):
@@ -99,7 +96,6 @@ async def refreshStatus():
 	await bot.change_presence(activity=discord.Activity(
 		type=discord.ActivityType.watching, name=f"for f! in {servers:,} servers!"))
 
-
 # Build database tables if they don't already exist
 async def buildtables():
 	cursor.execute(
@@ -139,6 +135,9 @@ async def buildtables():
 		""")
 		db.commit()
 
+##
+## Bot Events
+##
 
 # When bot connects to Discord
 @bot.event
@@ -149,8 +148,6 @@ async def on_ready():
 	cursor.execute('SELECT id FROM Servers')
 	print('Registered server IDs: ' + str(cursor.fetchall()))
 	print('Discord listed server IDs:' + str(bot.guilds))
-
-
 
 # Custom error handler
 @bot.event
@@ -193,7 +190,6 @@ async def on_command_error(ctx, error):
 	embed.add_field(name='Bug Reports:', value="If this looks like it's a bug, please report it with f!feedback!  Make sure to include details on how to reproduce the bug and I'll patch it as soon as I can!", inline=False)
 	await ctx.send(embed=embed)
 	raise error
-
 
 # When bot connects to Discord
 @bot.event
@@ -247,7 +243,6 @@ async def on_guild_remove(guild):
 	# Update the status to match
 	await refreshStatus()
 
-
 # When a reaction is added to a message
 @bot.event
 async def on_raw_reaction_add(payload):
@@ -296,6 +291,9 @@ async def on_raw_reaction_add(payload):
 	if reaction.emoji == "❌" and payload.member is None:
 		await message.delete()
 
+##
+## Tasks
+##
 
 # Align fortune task to start at the right time
 @tasks.loop(seconds = 1)
@@ -402,7 +400,7 @@ async def command(ctx):
 async def setup(ctx):
 	await help(ctx, 'setup')
 
-#End Help
+# End Help
 
 # List all fortunes
 @bot.command(aliases=['list', 'fortune'])
@@ -556,7 +554,7 @@ async def feedback(ctx, *, arg=''):
 	db.commit()
 	await send(ctx, 'Thanks!', 'Your feedback is appreciated, thank you!')
 
-#End Feedback
+# End Feedback
 
 # Read me the feedback
 @bot.command()
@@ -684,8 +682,8 @@ async def execute(ctx, *, arg):
 		return
 	await send(ctx, "Eval returned a NoneType.")
 
+# Modular command from Nick's demand
 import discord.ext.commands.errors
-
 @bot.command()
 async def cum(ctx):
 	if ctx.author.id != 334836951037509634:
