@@ -286,14 +286,10 @@ async def on_raw_reaction_add(payload):
 		icon_url=message.guild.icon_url
 	)
 	message = await user.send(embed=embed)
-	await message.add_reaction("❌")
 
 #REACT WHEN SENDING IN DMS
 # WHEN REACT APPLIED DELETE MESSAGE
 
-##
-## Tasks
-##
 
 # Align fortune task to start at the right time
 @tasks.loop(seconds = 1)
