@@ -260,20 +260,16 @@ async def on_raw_reaction_add(payload):
 	message = await bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
 	reaction = discord.utils.get(message.reactions, emoji="🌟")
 	user = payload.member
+	print(reaction.emoji)
 
-	# If not in guild
-	if user is None:
-		print("payload user was none")
-		return
-
-	# If we don't care about the reaction (it's not a star)
-	if reaction is None:
-		print('react was not a star')
-		return
-	
 	# If the message wasn't posted by the bot
 	if message.author != bot.user:
 		print('host message was not by bot')
+		return
+
+	# If we don't care about the reaction (it's not a star)
+	if reaction.emoji != "🌟":
+		print('react was not a star')
 		return
 	
 	embed = discord.Embed(
