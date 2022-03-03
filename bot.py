@@ -254,7 +254,6 @@ async def on_guild_remove(guild):
 async def on_raw_reaction_add(payload):
 	# If the event was triggered by the bot
 	if payload.user_id == bot.user.id:
-		print('react was by bot')
 		return
 
 	
@@ -271,12 +270,10 @@ async def on_raw_reaction_add(payload):
 
 	# If the reaction wasn't started by the bot
 	if not reaction.me:
-		print('reaction was not started by the bot')
 		return
 
 	# If the reaction was a star
 	if reaction.emoji == "🌟" and payload.member is not None:
-		print('react was a star')
 		embed = discord.Embed(
 			title=f"Favorited fortune from {message.guild.name}:",
 			description=message.embeds[0].description,
@@ -291,7 +288,6 @@ async def on_raw_reaction_add(payload):
 		return
 
 	if reaction.emoji == "❌" and payload.member is None:
-		print('react was an x')
 		await message.delete()
 
 
