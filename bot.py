@@ -255,12 +255,13 @@ async def on_raw_reaction_add(payload):
 	if payload.user_id == bot.user.id:
 		return
 
-	#TODO 15 fix V, it always triggers
-	#https://discordpy.readthedocs.io/en/stable/api.html?highlight=on_raw_react#discord.RawReactionActionEvent.emoji
+	# Do nothing if it is not a unicode emoji
+	if not payload.emoji.is_unicode_emoji():
+		return
+
 	# If it's an emoji we don't care about
 	emojis = ["🌟", "❌"]
-	if payload.emoji not in emojis:
-		print("don't care about the emoji")
+	if payload.emoji.name not in emojis:
 		return
 
 	# If it's in DMs get the message from DMs
