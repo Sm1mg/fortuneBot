@@ -332,7 +332,7 @@ async def fortune():
 			icon_url=ctx.guild.icon_url
 		)
 		message = await ctx.send(embed=embed)
-		message.add_reaction("🌟")
+		await message.add_reaction("🌟")
 
 	# Refresh the bot's status just for fun
 	await refreshStatus()
