@@ -257,12 +257,15 @@ async def on_raw_reaction_add(payload):
 		print('react was by bot')
 		return
 
-	message = await bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
+	
 
 	# If it's in DMs get the message from DMs
 	if payload.member is None:
 		message = await bot.fetch_user(payload.user_id).fetch_message(payload.message_id)
-	
+	# Otherwise get it normally
+	else:
+		message = await bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
+		
 	reaction = discord.utils.get(message.reactions)
 
 	# If the reaction wasn't started by the bot
@@ -271,7 +274,7 @@ async def on_raw_reaction_add(payload):
 		return
 
 	# If the reaction was a star
-	if reaction.emoji == "🌟":
+	if reaction.emoji == "🌟" and payload.member is not None:
 		print('react was a star')
 		embed = discord.Embed(
 			title=f"Favorited fortune from {message.guild.name}:",
@@ -282,11 +285,11 @@ async def on_raw_reaction_add(payload):
 			name=message.guild.name,
 			icon_url=message.guild.icon_url
 		)
-		message = await user.send(embed=embed)
+		message = await payload.member.send(embed=embed)
 		await message.add_reaction("❌")
 		return
 
-	if reaction.emoji == "❌":
+	if reaction.emoji == "❌" and payload.member is None:
 		print('react was an x')
 		await message.delete()
 
