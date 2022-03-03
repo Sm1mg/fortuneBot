@@ -257,9 +257,13 @@ async def on_raw_reaction_add(payload):
 		print('react was by bot')
 		return
 
-	message = await bot.fetch_message(payload.message_id)
-	reaction = discord.utils.get(message.reactions, emoji="🌟")
-	user = payload.member
+	message = await bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
+
+	# If it's in DMs get the message from DMs
+	if payload.member is None:
+		message = await bot.fetch_user(payload.user_id).dm_channel.fetch_message(payload.message_id)
+	
+	reaction = discord.utils.get(message.reactions)
 
 	# If the reaction wasn't started by the bot
 	if not reaction.me:
@@ -284,8 +288,7 @@ async def on_raw_reaction_add(payload):
 
 	if reaction.emoji == "❌":
 		print('react was an x')
-		if user is None:
-			await message.delete()
+		await message.delete()
 
 
 # Align fortune task to start at the right time
