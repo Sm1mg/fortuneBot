@@ -274,7 +274,16 @@ async def on_raw_reaction_add(payload):
 		print('host message was not by bot')
 		return
 	
-	await send(user, f"Favorited fortune from {message.guild.name}:", message.embeds[0].description)
+	embed = discord.Embed(
+		title=f"Favorited fortune from {message.guild.name}:",
+		description=message.embeds[0].description,
+		color=await getRandomHex(message.guild.id)
+	)
+	embed.set_author(
+		name=message.guild.name,
+		icon_url=message.guild.name
+	)
+	message = await user.send(embed=embed)
 
 
 ##
