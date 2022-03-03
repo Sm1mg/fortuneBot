@@ -309,7 +309,7 @@ async def fortune():
 
 		# If we couldn't find the channel for fortunes
 		if ctx is None:
-			print(server[0] + " has no set channel, skipping.")
+			print(str(server[0]) + " has no set channel, skipping.")
 			continue
 		
 		# Execute fortune with the guild's options
