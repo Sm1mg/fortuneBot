@@ -261,11 +261,11 @@ async def on_raw_reaction_add(payload):
 
 	# If it's in DMs get the message from DMs
 	if payload.member is None:
-		message = await bot.fetch_user(payload.user_id).fetch_message(payload.message_id)
+		message = await (await bot.fetch_user(payload.user_id)).fetch_message(payload.message_id)
 	# Otherwise get it normally
 	else:
 		message = await bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
-		
+
 	reaction = discord.utils.get(message.reactions)
 
 	# If the reaction wasn't started by the bot
