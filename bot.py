@@ -252,7 +252,7 @@ async def on_guild_remove(guild):
 # When a reaction is added to a message
 @bot.event
 async def on_raw_reaction_add(payload):
-	# If the reaction wasn't started by the bot
+	# If the event was triggered by the bot
 	if payload.user_id == bot.user.id:
 		print('react was by bot')
 		return
@@ -261,6 +261,10 @@ async def on_raw_reaction_add(payload):
 	reaction = discord.utils.get(message.reactions, emoji="🌟")
 	user = payload.member
 	print(reaction.emoji)
+
+	if not reaction.me:
+		print('reaction was not started by the bot')
+		return
 
 	# If the message wasn't posted by the bot
 	if message.author != bot.user:
@@ -282,6 +286,7 @@ async def on_raw_reaction_add(payload):
 		icon_url=message.guild.icon_url
 	)
 	message = await user.send(embed=embed)
+	await message.add_reaction("❌")
 
 #REACT WHEN SENDING IN DMS
 # WHEN REACT APPLIED DELETE MESSAGE
