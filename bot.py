@@ -256,8 +256,8 @@ async def on_guild_remove(guild):
 @bot.event
 async def on_raw_reaction_add(payload):
 	# If the reaction wasn't started by the bot
-	if payload.user_id != bot.user.id:
-		print('react was not by bot')
+	if payload.user_id == bot.user.id:
+		print('react was by bot')
 		return
 
 	message = await bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
