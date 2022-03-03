@@ -260,36 +260,32 @@ async def on_raw_reaction_add(payload):
 	message = await bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
 	reaction = discord.utils.get(message.reactions, emoji="🌟")
 	user = payload.member
-	print(reaction.emoji)
 
+	# If the reaction wasn't started by the bot
 	if not reaction.me:
 		print('reaction was not started by the bot')
 		return
 
-	# If the message wasn't posted by the bot
-	if message.author != bot.user:
-		print('host message was not by bot')
+	# If the reaction was a star
+	if reaction.emoji == "🌟":
+		print('react was a star')
+		embed = discord.Embed(
+			title=f"Favorited fortune from {message.guild.name}:",
+			description=message.embeds[0].description,
+			color=await getRandomHex(message.guild.id)
+		)
+		embed.set_author(
+			name=message.guild.name,
+			icon_url=message.guild.icon_url
+		)
+		message = await user.send(embed=embed)
+		await message.add_reaction("❌")
 		return
 
-	# If we don't care about the reaction (it's not a star)
-	if reaction.emoji != "🌟":
-		print('react was not a star')
-		return
-	
-	embed = discord.Embed(
-		title=f"Favorited fortune from {message.guild.name}:",
-		description=message.embeds[0].description,
-		color=await getRandomHex(message.guild.id)
-	)
-	embed.set_author(
-		name=message.guild.name,
-		icon_url=message.guild.icon_url
-	)
-	message = await user.send(embed=embed)
-	await message.add_reaction("❌")
-
-#REACT WHEN SENDING IN DMS
-# WHEN REACT APPLIED DELETE MESSAGE
+	if reaction.emoji == "❌":
+		print('react was an x')
+		if user is None:
+			await message.delete()
 
 
 # Align fortune task to start at the right time
