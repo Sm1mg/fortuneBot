@@ -252,43 +252,43 @@ async def on_guild_remove(guild):
 # When a reaction is added to a message
 @bot.event
 async def on_raw_reaction_add(payload):
-	# If the reaction wasn't started by the bot
+	# If the event was triggered by the bot
 	if payload.user_id == bot.user.id:
-		print('react was by bot')
 		return
 
-	message = await bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
-	reaction = discord.utils.get(message.reactions, emoji="🌟")
-	user = payload.member
-
-	# If not in guild
-	if user is None:
-		print("payload user was none")
-		return
-
-	# If we don't care about the reaction (it's not a star)
-	if reaction is None:
-		print('react was not a star')
-		return
 	
-	# If the message wasn't posted by the bot
-	if message.author != bot.user:
-		print('host message was not by bot')
-		return
-	
-	embed = discord.Embed(
-		title=f"Favorited fortune from {message.guild.name}:",
-		description=message.embeds[0].description,
-		color=await getRandomHex(message.guild.id)
-	)
-	embed.set_author(
-		name=message.guild.name,
-		icon_url=message.guild.icon_url
-	)
-	message = await user.send(embed=embed)
 
-#REACT WHEN SENDING IN DMS
-# WHEN REACT APPLIED DELETE MESSAGE
+	# If it's in DMs get the message from DMs
+	if payload.member is None:
+		user = await bot.fetch_user(payload.user_id)
+		message = await user.fetch_message(payload.message_id)
+	# Otherwise get it normally
+	else:
+		message = await bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
+
+	reaction = discord.utils.get(message.reactions)
+
+	# If the reaction wasn't started by the bot
+	if not reaction.me:
+		return
+
+	# If the reaction was a star
+	if reaction.emoji == "🌟" and payload.member is not None:
+		embed = discord.Embed(
+			title=f"Favorited fortune from {message.guild.name}:",
+			description=message.embeds[0].description,
+			color=await getRandomHex(message.guild.id)
+		)
+		embed.set_author(
+			name=message.guild.name,
+			icon_url=message.guild.icon_url
+		)
+		message = await payload.member.send(embed=embed)
+		await message.add_reaction("❌")
+		return
+
+	if reaction.emoji == "❌" and payload.member is None:
+		await message.delete()
 
 
 # Align fortune task to start at the right time
