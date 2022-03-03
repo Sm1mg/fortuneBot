@@ -1,4 +1,3 @@
-from cgitb import text
 from dotenv import load_dotenv
 from datetime import datetime
 from discord.ext import commands, tasks
@@ -256,7 +255,10 @@ async def on_raw_reaction_add(payload):
 	if payload.user_id == bot.user.id:
 		return
 
-	
+	# If it's an emoji we don't care about
+	emojis = ["🌟", "❌"]
+	if payload.emoji not in emojis:
+			return
 
 	# If it's in DMs get the message from DMs
 	if payload.member is None:
