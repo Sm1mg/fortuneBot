@@ -281,7 +281,7 @@ async def on_raw_reaction_add(payload):
 	)
 	embed.set_author(
 		name=message.guild.name,
-		icon_url=message.guild.name
+		icon_url=message.guild.icon_url
 	)
 	message = await user.send(embed=embed)
 
