@@ -261,9 +261,7 @@ async def on_raw_reaction_add(payload):
 
 	# If it's in DMs get the message from DMs
 	if payload.member is None:
-		user = await bot.get_user(payload.user_id)
-		if user is None:
-			print("something went wrong trying to get user's dm")
+		user = await bot.fetch_user(payload.user_id)
 		message = await user.fetch_message(payload.message_id)
 	# Otherwise get it normally
 	else:
