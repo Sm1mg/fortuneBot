@@ -258,7 +258,8 @@ async def on_raw_reaction_add(payload):
 	# If it's an emoji we don't care about
 	emojis = ["🌟", "❌"]
 	if payload.emoji not in emojis:
-			return
+		print("don't care about the emoji")
+		return
 
 	# If it's in DMs get the message from DMs
 	if payload.member is None:
