@@ -9,10 +9,10 @@ import asyncio
 import random
 [4, 8, 15, 16, 23, 42]
 print("Starting up...")
-# TODO 2 set option to change prefix(?)
-# TODO 4 make prints different levels, log, warning, and err and color code them
-# TODO 8 create a function that sends a fortune from guild id, channel id, options
 
+# TODO 2 set option to change prefix(?)
+# TODO 3 find a better solution than ``` -> '''
+# TODO 4 make prints different levels, log, warning, and err and color code them
 
 # Create database link
 db = sql.connect('database.db')
@@ -330,7 +330,6 @@ async def fortune():
 		result = subprocess.run(args, stdout=subprocess.PIPE, text=True).stdout
 
 		# Replace poor formatting
-		# TODO 3 find a better solution than ``` -> '''
 		result = result.replace('```', "'''")
 		result = result.replace('\t', '        ')
 		# If there's just a % on a line (it's junk data)
