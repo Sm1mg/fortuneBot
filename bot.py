@@ -27,6 +27,7 @@ key = os.environ.get('key')
 
 intents = discord.Intents.default()
 intents.members = True
+intents.guild_reactions = True
 
 bot = commands.Bot(command_prefix="f!", intent=intents, case_insensitive=True)
 bot.remove_command("help")
@@ -110,8 +111,7 @@ async def buildtables():
 			CREATE TABLE Servers (
 			id INTEGER KEY,
 			channel INTEGER,
-			options STRING,
-			last STRING
+			options STRING
 			);
 		""")
 		db.commit()
@@ -248,11 +248,34 @@ async def on_guild_remove(guild):
 	# Update the status to match
 	await refreshStatus()
 
-#WIP
+
+# TODO add reaction in fortune
+# TODO delete all the other shit
+
 # When a reaction is added to a message
 @bot.event
-async def on_raw_reaction_add()
+async def on_raw_reaction_add(payload):
+	# If the reaction wasn't started by the bot
+	if payload.user_id != bot.user.id:
+		print('react was not by bot')
+		return
+
+	message = await bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
+	reaction = discord.utils.get(message.reactions, emoji="🌟")
+	user = payload.member
+
+	# If we don't care about the reaction (it's not a star)
+	if reaction is None:
+		print('react was not a star')
+		return
 	
+	# If the message wasn't posted by the bot
+	if message.author != bot.user:
+		print('host message was not by bot')
+		return
+	
+	await send(user, f"Favorited fortune from {message.guild.name}:", message.embed.description)
+
 
 ##
 ## Tasks
@@ -308,10 +331,9 @@ async def fortune():
 			name=ctx.guild.name,
 			icon_url=ctx.guild.icon_url
 		)
-		await ctx.send(embed=embed)
+		message = await ctx.send(embed=embed)
+		message.add_reaction("🌟")
 
-		cursor.execute("UPDATE Servers SET last=? WHERE id=?", (result, server[0]))
-		db.commit()
 	# Refresh the bot's status just for fun
 	await refreshStatus()
 
@@ -336,7 +358,6 @@ async def help(ctx, helpType=None):
 	# List the bot's commands
 	elif helpType == 'commands':
 		embed = await getEmbed(ctx, 'Helping describe commands')
-		embed.add_field(name="favorite:", value="Favorites the last sent fortune in the server. (Favoriting just sends it to you in DMs)  Usage example: `f!favorite`")
 		embed.add_field(name="fortunes:", value="Prints the categories of fortune to be drawn from and the % chance that it will be chosen with the current options.")
 		embed.add_field(name="channel (channel):", value="Sets the channel the bot will post fortunes into. Usage example: `f!channel \#fortunes`")
 		embed.add_field(name="options (options):", value="Set options for fortunes in this server, use https://linux.die.net/man/6/fortune as a reference to what's supported. Usage example: `f!options -e startrek cookie`")
@@ -498,20 +519,6 @@ async def options(ctx, *, arg=''):
 	cursor.execute("UPDATE Servers SET options=? WHERE id=?", (arg, ctx.guild.id))
 	db.commit()
 	await send(ctx, "Success!", f"The option{'s' if len(args) > 2 else ''} `{arg}` have been successfully set.")
-
-
-# TODO 9 add to help
-# TODO 10 have last update from fortune task
-@bot.command(aliases=['save'])
-@commands.cooldown(1,1200,commands.BucketType.user)
-async def favorite(ctx):
-	cursor.execute("SELECT last FROM Servers WHERE id=?", (ctx.guild.id,))
-	last = cursor.fetchone()[0][0]
-	if last is None:
-		await send(ctx, "Error favoriting fortune:", "There have not been any fortunes sent in this server!")
-		return
-	await send(ctx.author, f"Favorited fortune from {ctx.guild.name}:", "```" + last + "```")
-	await send(ctx, "Fortune favorited!")
 
 
 # Feedback command (300 second cooldown)
