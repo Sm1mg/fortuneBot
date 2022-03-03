@@ -274,7 +274,7 @@ async def on_raw_reaction_add(payload):
 		print('host message was not by bot')
 		return
 	
-	await send(user, f"Favorited fortune from {message.guild.name}:", message.embed.description)
+	await send(user, f"Favorited fortune from {message.guild.name}:", message.embeds[0].description)
 
 
 ##
