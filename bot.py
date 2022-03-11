@@ -13,7 +13,6 @@ print("Starting up...")
 # TODO 2 set option to change prefix(?)
 # TODO 3 find a better solution than ``` -> '''
 # TODO 4 make prints different levels, log, warning, and err and color code them
-# TODO 6 make favorite command link to the message
 
 # Create database link
 db = sql.connect('database.db')
