@@ -7,12 +7,13 @@ import subprocess
 import discord
 import asyncio
 import random
+import bcolors
 [4, 8, 15, 16, 23, 42]
 print("Starting up...")
 
 # TODO 2 set option to change prefix(?)
 # TODO 3 find a better solution than ``` -> '''
-# TODO 4 make prints different levels, log, warning, and err and color code them
+# TODO 7 do the better print thing
 
 # Create database link
 db = sql.connect('database.db')
@@ -307,7 +308,11 @@ async def sync():
 @tasks.loop(seconds = 86400)
 async def fortune():
 	sync.stop()
-	print("fortunes going out")
+	time = datetime.now().strftime("%H:%M")
+	if time != "12:00":
+		print("Fortune task has become desynced with system time, did daylight savings just happen?")
+		fortune.stop()
+	print("Fortunes are going out")
 	cursor.execute("SELECT * FROM Servers")
 	servers = cursor.fetchall()
 	# Loop through every server in the database
