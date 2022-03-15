@@ -7,7 +7,6 @@ import subprocess
 import discord
 import asyncio
 import random
-import bcolors
 [4, 8, 15, 16, 23, 42]
 print("Starting up...")
 
