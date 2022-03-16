@@ -68,7 +68,7 @@ async def updateDB():
 	for guild in guilds:
 		if guild.id not in guildID:
 			print(f"guild {guild.name} was not in db, adding.")
-			cursor.execute('INSERT INTO Servers (id) VALUES (?)', (guild.id))
+			cursor.execute('INSERT INTO Servers (id, channel, options) VALUES (?, ?, ?)', (guild.id, None, None))
 			db.commit()
 
 	# Check for servers that shouldn't be in db
@@ -205,15 +205,8 @@ async def on_ready():
 # When the bot joins a new guild
 @bot.event
 async def on_guild_join(guild):
-	cursor.execute('SELECT id FROM Servers')
-	serverList = cursor.fetchall()
-	if (guild.id, ) not in serverList:
-		cursor.execute('INSERT INTO Servers (id) VALUES (?)', (guild.id))
-		db.commit()
-		# Update the status to match
-		await refreshStatus()
-	else:
-		print(f"newly joined server ({guild.name}) is already in database???")
+	# Update the status (updateDB() will catch the new guild)
+	await refreshStatus()
 	# Loop through channels until we find one we can send the welcome message in	
 	for channel in guild.text_channels:
 		if channel.permissions_for(guild.me).send_messages:
@@ -307,10 +300,6 @@ async def sync():
 @tasks.loop(seconds = 86400)
 async def fortune():
 	sync.stop()
-	time = datetime.now().strftime("%H:%M")
-	if time != "12:00":
-		print("Fortune task has become desynced with system time, did daylight savings just happen?")
-		fortune.stop()
 	print("Fortunes are going out")
 	cursor.execute("SELECT * FROM Servers")
 	servers = cursor.fetchall()
@@ -354,6 +343,14 @@ async def fortune():
 
 	# Refresh the bot's status just for fun
 	await refreshStatus()
+
+	# Safeguard against fortune desync (could end up running daily if fortunes take >1min to send)
+	time = datetime.now().strftime("%H:%M")
+	if time != "12:00":
+		print("Fortune task has become desynced with system time, restarting sync.")
+		fortune.stop()
+		await asyncio.sleep(61)
+		sync.start()
 
 ##
 ## Commands
@@ -435,19 +432,21 @@ async def channel(ctx, *, arg=''):
 	# Pull guild's channel
 	cursor.execute('SELECT channel FROM Servers WHERE id=?',(ctx.guild.id,))
 	channelID = cursor.fetchone()[0]
+	# Can't guild.get_channel of None so do a little trolling
+	if channelID == None:
+		channelID = -1
 	storedChannel = ctx.guild.get_channel(channelID)
 
 	# If we can't find the channel but it has been set
-	if storedChannel is None and channelID != None:
+	if storedChannel is None and channelID != -1:
 		print('channel was deleted')
-		chan = None
-		cursor.execute('UPDATE Servers SET channel=? WHERE id=?', (chan, ctx.guild.id))
+		cursor.execute('UPDATE Servers SET channel=? WHERE id=?', (None, ctx.guild.id))
 		db.commit()
 
 	# If there isn't a channel mentioned
 	if not ctx.message.channel_mentions:
 		# If we don't already have a channel set
-		if channelID is None:
+		if channelID == -1:
 			await send(ctx, 'There is no channel set.', 'Please mention a channel for the bot to post fortunes into.')
 			return
 		# If we do, say what it is
@@ -457,13 +456,13 @@ async def channel(ctx, *, arg=''):
 	channel = ctx.message.channel_mentions
 	# Channel mention count check
 	if len(channel) > 1:
-		await send(ctx, 'Too many channels pinged!', "You can't have multiple fortune channels!\n\nPlease ping *one* channel to use.")
+		await send(ctx, 'Too many channels mentioned!', "You can't have multiple fortune channels!\n\nPlease ping *one* channel to use.")
 		return
 
 	channel = channel[0]
 	# Already channel
 	if int(channel.id) == int(channelID):
-		await send(ctx, 'Error changing role!', f'`{channel.name}` is already being used for fortunes!')
+		await send(ctx, 'Error changing channel!', f'`{channel.name}` is already being used for fortunes!')
 		return
 
 	# Checks if this is the first time entering a channel
@@ -573,7 +572,8 @@ async def readFeedback(ctx):
 		except:
 			print(f'Something went wrong translating row {row[0]}')
 		finally:
-			await ctx.author.send(row)
+			message = await ctx.author.send(row)
+			await message.add_reaction("❌")
 
 # Reply to the user who sent me feedback
 @bot.command()
@@ -654,13 +654,6 @@ async def clearDMs(ctx):
 			await message.delete()
 	await send(ctx, 'Purge done.')
 
-# Manually build database tables via command
-@bot.command()
-@commands.is_owner()
-async def buildTables(ctx):
-	await buildtables()
-	await send(ctx, 'Done!')
-
 # Send raw commands to the SQL DB
 @bot.command()
 @commands.is_owner()
@@ -686,7 +679,7 @@ async def execute(ctx, *, arg):
 		return
 	await send(ctx, "Eval returned a NoneType.")
 
-# Modular command from Nick's demand
+# Modular command from Nick's demands
 import discord.ext.commands.errors
 @bot.command()
 async def cum(ctx):
