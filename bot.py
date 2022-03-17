@@ -10,9 +10,8 @@ import random
 [4, 8, 15, 16, 23, 42]
 print("Starting up...")
 
-# TODO 2 set option to change prefix(?)
 # TODO 3 find a better solution than ``` -> '''
-# TODO 7 do the better print thing
+# TODO 5 do the better print thing
 
 # Create database link
 db = sql.connect('database.db')
