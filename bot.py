@@ -10,8 +10,8 @@ import random
 [4, 8, 15, 16, 23, 42]
 print("Starting up...")
 
-# TODO 3 find a better solution than ``` -> '''
-# TODO 5 do the better print thing
+# TODO 3 find a better solution than ``` -> ''\'
+# TODO 8 Add more prints now that they don't look like ass
 
 # Create database link
 db = sql.connect('database.db')
@@ -66,7 +66,7 @@ async def updateDB():
 
 	for guild in guilds:
 		if guild.id not in guildID:
-			print(f"guild {guild.name} was not in db, adding.")
+			pront("WARNING", f"guild {guild.name} was not in db, adding.")
 			cursor.execute('INSERT INTO Servers (id, channel, options) VALUES (?, ?, ?)', (guild.id, None, None))
 			db.commit()
 
@@ -77,7 +77,7 @@ async def updateDB():
 	for guild in dbGuilds:
 		guild = bot.get_guild(guild[0])
 		if guild not in guilds:
-			print(f"{guild.name} should not be in database, removing.")
+			pront("WARNING", f"{guild.name} should not be in database, removing.")
 			cursor.execute("DELETE FROM Servers WHERE id=?", (guild.id,))
 			db.commit()
 
@@ -88,10 +88,10 @@ async def refreshStatus():
 	cachedServers = len(cursor.fetchall())
 	servers = len(bot.guilds)
 	if cachedServers != servers:
-		print(
+		pront("ERROR",
 			"!!!!!!!!!!!COUNT OF CACHED SERVERS MISSING DISCORD LISTED SERVERS!!!!!!!!!!!!")
-		print(f'cachedServers = {cachedServers}')
-		print(f'serverCount = {servers}')
+		pront("ERROR", f'cachedServers = {cachedServers}')
+		pront("ERROR", f'serverCount = {servers}')
 	await bot.change_presence(activity=discord.Activity(
 		type=discord.ActivityType.watching, name=f"for f! in {servers:,} servers!"))
 
@@ -100,7 +100,7 @@ async def buildtables():
 	cursor.execute(
 		"SELECT name FROM sqlite_master WHERE type='table' AND name='Servers';")
 	if cursor.fetchone() is None:
-		print('Servers table not found, creating...')
+		pront("WARNING", 'Servers table not found, creating...')
 		cursor.execute("""
 			CREATE TABLE Servers (
 			id INTEGER KEY,
@@ -112,7 +112,7 @@ async def buildtables():
 	cursor.execute(
 		"SELECT name FROM sqlite_master WHERE type='table' AND name='feedback';")
 	if cursor.fetchone() is None:
-		print('feedback table not found, creating...')
+		pront("WARNING", 'feedback table not found, creating...')
 		cursor.execute("""
 		CREATE TABLE feedback (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -125,7 +125,7 @@ async def buildtables():
 	cursor.execute(
 		"SELECT name FROM sqlite_master WHERE type='table' AND name='bannedFeedback';")
 	if cursor.fetchone() is None:
-		print('table bannedFeedback not found, creating...')
+		pront("WARNING", 'table bannedFeedback not found, creating...')
 		cursor.execute("""
 			CREATE TABLE bannedFeedback (
 			id INTEGER KEY,
@@ -134,6 +134,16 @@ async def buildtables():
 		""")
 		db.commit()
 
+# Print function
+def pront(lvl, content):
+	colors = {
+		"LOG" : "",
+		"WARNING" : "\033[93m",
+		"ERROR" : "\033[91m",
+		"NONE" : "\033[0m"
+	}
+	print(colors[lvl] + "{" + datetime.now().strftime("%x %X") + "} " + lvl + ": " + content + colors["NONE"])
+
 ##
 ## Bot Events
 ##
@@ -141,12 +151,13 @@ async def buildtables():
 # When bot connects to Discord
 @bot.event
 async def on_ready():
-	print('Bot Online!')
+	pront('LOG', 'Bot Online!')
 	await buildtables()
 	await refreshStatus()
 	cursor.execute('SELECT id FROM Servers')
-	print('Registered server IDs: ' + str(cursor.fetchall()))
-	print('Discord listed server IDs:' + str(bot.guilds))
+	pront('LOG', 'Registered server IDs: ' + str(cursor.fetchall()))
+	pront('LOG', 'Discord listed server IDs:' + str(bot.guilds))
+	sync.start()
 
 # Custom error handler
 @bot.event
@@ -178,28 +189,17 @@ async def on_command_error(ctx, error):
 	# If we're being ratelimited (uh oh)
 	if isinstance(error, discord.HTTPException):
 		await send(ctx, "The bot is currently being ratelimited!", "Please report this to the developer with f!feedback alongside what you were doing to cause this!")
-		print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-		print("being ratelimited fuck fuck fuck")
-		print(error)
-		print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+		pront("ERROR", "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+		pront("ERROR", "being ratelimited fuck fuck fuck")
+		pront("ERROR", error)
+		pront("ERROR", "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 		raise error
-	print(error)
+	pront("ERROR", error)
 	# Send generic error message if none of the above apply
 	embed = await getEmbed(ctx, 'Oops!  Something just went wrong...', error)
 	embed.add_field(name='Bug Reports:', value="If this looks like it's a bug, please report it with f!feedback!  Make sure to include details on how to reproduce the bug and I'll patch it as soon as I can!", inline=False)
 	await ctx.send(embed=embed)
 	raise error
-
-# When bot connects to Discord
-@bot.event
-async def on_ready():
-	print('Bot Online!')
-	await buildtables()
-	await refreshStatus()
-	cursor.execute('SELECT id FROM Servers')
-	print('Registered server IDs: ' + str(cursor.fetchall()))
-	print('Discord listed server IDs:' + str(bot.guilds))
-	sync.start()
 
 # When the bot joins a new guild
 @bot.event
@@ -228,7 +228,7 @@ async def on_guild_remove(guild):
 	cursor.execute('SELECT id FROM Servers')
 	serverList = cursor.fetchall()
 	if (guild.id, ) not in serverList:
-		print("!!!!!!!!!!!!!!LEFT UNDOCUMENTED SERVER HOW THE FUCK!!!!!!!!!!!!!!")
+		pront("ERROR", "!!!!!!!!!!!!!!LEFT UNDOCUMENTED SERVER HOW THE FUCK!!!!!!!!!!!!!!")
 		return
 	cursor.execute('DELETE FROM Servers WHERE id=?',(guild.id,))
 	db.commit()
@@ -299,7 +299,7 @@ async def sync():
 @tasks.loop(seconds = 86400)
 async def fortune():
 	sync.stop()
-	print("Fortunes are going out")
+	pront("LOG", "Fortunes are going out")
 	cursor.execute("SELECT * FROM Servers")
 	servers = cursor.fetchall()
 	# Loop through every server in the database
@@ -316,7 +316,7 @@ async def fortune():
 
 		# If we couldn't find the channel for fortunes
 		if ctx is None:
-			print(str(server[0]) + " has no set channel, skipping.")
+			pront("WARNING", str(server[0]) + " has no set channel, skipping.")
 			continue
 		
 		# Execute fortune with the guild's options
@@ -346,7 +346,7 @@ async def fortune():
 	# Safeguard against fortune desync (could end up running daily if fortunes take >1min to send)
 	time = datetime.now().strftime("%H:%M")
 	if time != "12:00":
-		print("Fortune task has become desynced with system time, restarting sync.")
+		pront("ERROR", "Fortune task has become desynced with system time, restarting sync.")
 		fortune.stop()
 		await asyncio.sleep(61)
 		sync.start()
@@ -438,7 +438,7 @@ async def channel(ctx, *, arg=''):
 
 	# If we can't find the channel but it has been set
 	if storedChannel is None and channelID != -1:
-		print('channel was deleted')
+		pront("WARNING", 'channel was deleted')
 		cursor.execute('UPDATE Servers SET channel=? WHERE id=?', (None, ctx.guild.id))
 		db.commit()
 
@@ -569,7 +569,7 @@ async def readFeedback(ctx):
 		try:
 			row = (row[0], guild.name, user.name, row[3])
 		except:
-			print(f'Something went wrong translating row {row[0]}')
+			pront("ERROR", f'Something went wrong translating row {row[0]}')
 		finally:
 			message = await ctx.author.send(row)
 			await message.add_reaction("❌")
@@ -685,7 +685,7 @@ async def cum(ctx):
 	if ctx.author.id != 334836951037509634:
 		raise discord.ext.commands.errors.CommandNotFound(message='Command "sus"')
 	if ctx.guild.voice_client is not None:
-		print('already in vc, leaving.')
+		pront("LOG", 'already in vc, leaving.')
 		await ctx.voice_client.disconnect()
 		return
 	authorStatus = ctx.author.voice
@@ -697,7 +697,7 @@ async def cum(ctx):
 	fileArray = os.listdir('/home/pi/bot/audio/')
 	rng = random.randint(0, len(fileArray)-1)
 	song = fileArray[rng]
-	print(song)
+	pront("LOG", song)
 	vc.play(discord.FFmpegPCMAudio(f'/home/pi/bot/audio/{song}'))
 	while vc.is_playing():
 		await asyncio.sleep(1)
