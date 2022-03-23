@@ -12,6 +12,7 @@ print("Starting up...")
 
 # TODO 3 find a better solution than ``` -> ''\'
 # TODO 8 Add more prints now that they don't look like ass
+# TODO 12 add f!list to commands help
 
 # Create database link
 db = sql.connect('database.db')
