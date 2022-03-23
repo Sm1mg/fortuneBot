@@ -11,6 +11,7 @@ import random
 print("Starting up...")
 
 # TODO 3 find a better solution than ``` -> ''\'
+# TODO 6 look through code and find ratelimit optimizations
 # TODO 8 Add more prints now that they don't look like ass
 # TODO 12 add f!list to commands help
 
@@ -88,7 +89,7 @@ async def updateDB():
 #	dbMatches = []
 #	counter = 0
 #	for guild in bot.guilds:  # Loop through each server reported by discord
-#		for guildTpl in dbCopy:  # Loop through each entry pulled from db
+#		for guildTpl in dbCopy:  # Loop through each entry pulledTODO from db
 #			if guild.id == guildTpl[0]:  # If guild id is in database
 #				dbMatches.append(guild.id)  # Add the match to an array
 #				dbCopy.remove(counter)  # Remove the match from the database copy
@@ -207,10 +208,10 @@ async def on_command_error(ctx, error):
 		await send(ctx, "The bot is currently being ratelimited!", "Please report this to the developer with f!feedback alongside what you were doing to cause this!")
 		pront("ERROR", "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 		pront("ERROR", "being ratelimited fuck fuck fuck")
-		pront("ERROR", error)
+		pront("ERROR", str(error))
 		pront("ERROR", "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 		raise error
-	pront("ERROR", error)
+	pront("ERROR", str(error))
 	# Send generic error message if none of the above apply
 	embed = await getEmbed(ctx, 'Oops!  Something just went wrong...', error)
 	embed.add_field(name='Bug Reports:', value="If this looks like it's a bug, please report it with f!feedback!  Make sure to include details on how to reproduce the bug and I'll patch it as soon as I can!", inline=False)
@@ -316,6 +317,8 @@ async def sync():
 @tasks.loop(seconds = 86400)
 async def fortune():
 	sync.stop()
+	# Declare time now so the exec duration of fortune doesn't matter
+	time = datetime.now().strftime("%H:%M")
 	pront("LOG", "Fortunes are going out")
 	cursor.execute("SELECT * FROM Servers")
 	servers = cursor.fetchall()
@@ -360,11 +363,15 @@ async def fortune():
 	# Refresh the bot's status just for fun
 	await refreshStatus()
 
-	# Safeguard against fortune desync (could end up running daily if fortunes take >1min to send)
-	time = datetime.now().strftime("%H:%M")
+	# Flag for fortune taking longer than a minute to exec
+	if time != datetime.now().strftime("%H:%M"):
+		pront("ERROR", "!!!!!!!!!!!!!!!!!!!!\nFortune task took > 1 minute to execute, DO SOMETHING\n!!!!!!!!!!!!!!!!!!!!")
+
+	# Safeguard against fortune desync
 	if time != "12:00":
 		pront("ERROR", "Fortune task has become desynced with system time, restarting sync.")
 		fortune.stop()
+		# Wait 61 seconds so sync task doesn't immediately restart fortune
 		await asyncio.sleep(61)
 		sync.start()
 
