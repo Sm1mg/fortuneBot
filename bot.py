@@ -81,7 +81,20 @@ async def updateDB():
 			cursor.execute("DELETE FROM Servers WHERE id=?", (guild[0],))
 			db.commit()
 	
-	# TODO 10 What if i loop through the database and see what's left?
+	# TODO 10 What if i loop through the database by id, remove matches, and see what's left?
+	# God why can't i think to figure this out right now
+#	dbCopy = dbGuilds
+#	dbMatches = []
+#	counter = 0
+#	for guild in bot.guilds:  # Loop through each server reported by discord
+#		for guildTpl in dbCopy:  # Loop through each entry pulled from db
+#			if guild.id == guildTpl[0]:  # If guild id is in database
+#				dbMatches.append(guild.id)  # Add the match to an array
+#				dbCopy.remove(counter)  # Remove the match from the database copy
+#			counter+=1
+#
+#	if len(dbCopy) != 0:  # If the number of entries left is not 0
+
 
 # Refresh the bot's status to match server counts
 async def refreshStatus():
