@@ -75,11 +75,13 @@ async def updateDB():
 	cursor.execute("SELECT id FROM Servers")
 	dbGuilds = cursor.fetchall()
 	for guild in dbGuilds:
-		guild = bot.get_guild(guild[0])
-		if guild not in guilds:
-			pront("WARNING", f"{guild.name} should not be in database, removing.")
-			cursor.execute("DELETE FROM Servers WHERE id=?", (guild.id,))
+		guildObj = bot.get_guild(guild[0])
+		if guildObj not in guilds:
+			pront("WARNING", f"{guild[0]} should not be in database, removing.")
+			cursor.execute("DELETE FROM Servers WHERE id=?", (guild[0],))
 			db.commit()
+	
+	# TODO 10 What if i loop through the database and see what's left?
 
 # Refresh the bot's status to match server counts
 async def refreshStatus():
@@ -224,6 +226,7 @@ async def on_guild_join(guild):
 # When the bot is removed from a guild :(
 @bot.event
 async def on_guild_remove(guild):
+	pront("WARNING", f"{guild.name} has removed the bot, clearing from DB.")
 	# Purge server from database
 	cursor.execute('SELECT id FROM Servers')
 	serverList = cursor.fetchall()
