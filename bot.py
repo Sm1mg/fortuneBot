@@ -13,7 +13,6 @@ print("Starting up...")
 # TODO 3 find a better solution than ``` -> ''\'
 # TODO 6 look through code and find ratelimit optimizations
 # TODO 8 Add more prints now that they don't look like ass
-# TODO 12 add f!list to commands help
 
 # Create database link
 db = sql.connect('database.db')
@@ -57,45 +56,28 @@ async def send(ctx, title='', content='', footer=''):
 
 # Make sure tables exist for all servers bot is in
 async def updateDB():
-	# Check for servers missing in db
 	guilds = bot.guilds
 	cursor.execute("SELECT id FROM Servers")
 	dbGuilds = cursor.fetchall()
-	# Create an array containing the id of all guilds in db
-	guildID = []
-	for guild in dbGuilds:
-		guildID.append(guild[0])
 
-	for guild in guilds:
-		if guild.id not in guildID:
-			pront("WARNING", f"guild {guild.name} was not in db, adding.")
-			cursor.execute('INSERT INTO Servers (id, channel, options) VALUES (?, ?, ?)', (guild.id, None, None))
-			db.commit()
+	for guild in guilds:  # Loop through each server reported by discord
+		for guildTpl in dbGuilds:  # Loop through each entry pulled from db
+			if guild.id == guildTpl[0]:  # If guild id is in database
+				dbGuilds.remove(guildTpl)  # Remove the match from the database pull
+				guilds.remove(guild) # Remove the match from the api pull
 
-	# Check for servers that shouldn't be in db
-	guilds = bot.guilds
-	cursor.execute("SELECT id FROM Servers")
-	dbGuilds = cursor.fetchall()
-	for guild in dbGuilds:
-		guildObj = bot.get_guild(guild[0])
-		if guildObj not in guilds:
-			pront("WARNING", f"{guild[0]} should not be in database, removing.")
+	if len(guilds) != 0: # entries not in database
+		for guild in guilds:
+			pront("WARNING", f"Cleaning found new server {guild.name} ({guild.id}), adding to database")
+			cursor.execute("INSERT INTO Servers (id, channel, options) VALUES (?, ?, ?)", (guild.id, None, None))
+
+	if len(dbGuilds) != 0:  # entries not in discord
+		for guild in dbGuilds:
+			pront("WARNING", f"Cleaning found extra server {guild[0]}, removing from database")
 			cursor.execute("DELETE FROM Servers WHERE id=?", (guild[0],))
-			db.commit()
+
+	db.commit()
 	
-	# TODO 10 What if i loop through the database by id, remove matches, and see what's left?
-	# God why can't i think to figure this out right now
-#	dbCopy = dbGuilds
-#	dbMatches = []
-#	counter = 0
-#	for guild in bot.guilds:  # Loop through each server reported by discord
-#		for guildTpl in dbCopy:  # Loop through each entry pulledTODO from db
-#			if guild.id == guildTpl[0]:  # If guild id is in database
-#				dbMatches.append(guild.id)  # Add the match to an array
-#				dbCopy.remove(counter)  # Remove the match from the database copy
-#			counter+=1
-#
-#	if len(dbCopy) != 0:  # If the number of entries left is not 0
 
 
 # Refresh the bot's status to match server counts
@@ -186,7 +168,6 @@ async def on_command_error(ctx, error):
 
 	# If the bot doesn't have high enough permissions to do something
 	if isinstance(getattr(error, 'original', error), discord.Forbidden):
-		# god this is a clusterfuck
 		embed = await getEmbed(ctx, "The bot doesn't have enough permissions to do this!")
 		embed.add_field(name='What went wrong:',
 						value="This error appears when the bot doesn't have the permissions it needs.  This is likely caused by the order of roles in this server.", inline=True)
@@ -203,6 +184,7 @@ async def on_command_error(ctx, error):
 	# If the user isn't allowed to use a command
 	if isinstance(error, commands.MissingPermissions):
 		await send(ctx, 'Insufficient permissions:', 'You do not have the required permissions to run this command.')
+
 	# If we're being ratelimited (uh oh)
 	if isinstance(error, discord.HTTPException):
 		await send(ctx, "The bot is currently being ratelimited!", "Please report this to the developer with f!feedback alongside what you were doing to cause this!")
@@ -211,6 +193,7 @@ async def on_command_error(ctx, error):
 		pront("ERROR", str(error))
 		pront("ERROR", "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
 		raise error
+
 	pront("ERROR", str(error))
 	# Send generic error message if none of the above apply
 	embed = await getEmbed(ctx, 'Oops!  Something just went wrong...', error)
@@ -396,7 +379,7 @@ async def help(ctx, helpType=None):
 	# List the bot's commands
 	elif helpType == 'commands':
 		embed = await getEmbed(ctx, 'Helping describe commands')
-		embed.add_field(name="fortunes:", value="Prints the categories of fortune to be drawn from and the % chance that it will be chosen with the current options.")
+		embed.add_field(name="list:", value="Prints the categories of fortune to be drawn from and the % chance that it will be chosen with the current options.")
 		embed.add_field(name="channel (channel):", value="Sets the channel the bot will post fortunes into. Usage example: `f!channel #fortunes`")
 		embed.add_field(name="options (options):", value="Set options for fortunes in this server, use https://linux.die.net/man/6/fortune as a reference to what's supported. Usage example: `f!options -e startrek cookie`")
 		embed.add_field(name="feedback (message):", value="Allows you to send feedback to the developer of this bot. An example of the feedback command in use would look like 'f!feedback this bot is great!'")
