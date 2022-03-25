@@ -10,9 +10,12 @@ import random
 [4, 8, 15, 16, 23, 42]
 print("Starting up...")
 
+# TODO 2 look through code and find ratelimit optimizations
 # TODO 3 find a better solution than ``` -> ''\'
-# TODO 6 look through code and find ratelimit optimizations
-# TODO 8 Add more prints now that they don't look like ass
+# TODO 4 Add more prints now that they don't look like ass
+# TODO 5 Make sync task calculate how long it is until next fortune and wait ~until then
+# TODO 6 figure out what happened to the tasks being weird
+# TODO 8 make sure new list command works properly
 
 # Create database link
 db = sql.connect('database.db')
@@ -77,8 +80,6 @@ async def updateDB():
 			cursor.execute("DELETE FROM Servers WHERE id=?", (guild[0],))
 
 	db.commit()
-	
-
 
 # Refresh the bot's status to match server counts
 async def refreshStatus():
@@ -142,6 +143,20 @@ def pront(lvl, content):
 		"NONE" : "\033[0m"
 	}
 	print(colors[lvl] + "{" + datetime.now().strftime("%x %X") + "} " + lvl + ": " + content + colors["NONE"])
+
+# Function to check if args contain illegal options
+def restricted(args):
+	restricted = ["f", "m", "n", "w"]
+	for restriction in restricted:
+		for a in args:
+			if len(a) == 0:
+				continue
+			# If the first character is a dash
+			if a[0] == "-":
+				# If the argument also has an illegal character
+				if a.find(restriction) != -1:
+					return True
+	return False
 
 ##
 ## Bot Events
@@ -266,7 +281,7 @@ async def on_raw_reaction_add(payload):
 	if not reaction.me:
 		return
 
-	# If the reaction was a star
+	# If the reaction was a star (and it's in a server)
 	if reaction.emoji == "🌟" and payload.member is not None:
 		embed = discord.Embed(
 			title=f"Favorited fortune from {message.guild.name}:",
@@ -282,6 +297,7 @@ async def on_raw_reaction_add(payload):
 		await message.add_reaction("❌")
 		return
 
+	# If the reaction was a x (and it's not in a server)
 	if reaction.emoji == "❌" and payload.member is None:
 		await message.delete()
 
@@ -294,6 +310,10 @@ async def on_raw_reaction_add(payload):
 async def sync():
 	time = datetime.now().strftime("%H:%M")
 	if time == "12:00":
+		# Prevent task from throwing an error by starting a running task
+		if fortune.is_running():
+			pront("ERROR", "Fortune task was already running when sync fired, something has gone terribly wrong.")
+			fortune.cancel()
 		fortune.start()
 
 # Task to print a fortune every 24 hours
@@ -353,10 +373,11 @@ async def fortune():
 	# Safeguard against fortune desync
 	if time != "12:00":
 		pront("ERROR", "Fortune task has become desynced with system time, restarting sync.")
-		fortune.stop()
-		# Wait 61 seconds so sync task doesn't immediately restart fortune
-		await asyncio.sleep(61)
+		# Wait so sync task doesn't immediately restart fortune
+		await asyncio.sleep(80)
 		sync.start()
+		# Not sure why I have to use cancel now but I do to actually close fortune()
+		fortune.cancel()
 
 ##
 ## Commands
@@ -379,7 +400,7 @@ async def help(ctx, helpType=None):
 	# List the bot's commands
 	elif helpType == 'commands':
 		embed = await getEmbed(ctx, 'Helping describe commands')
-		embed.add_field(name="list:", value="Prints the categories of fortune to be drawn from and the % chance that it will be chosen with the current options.")
+		embed.add_field(name="list [options]:", value="Prints the categories of fortune to be drawn from and the % chance that it will be chosen with the server's options (or the ones specified to the command).  Usage example: `f!list -a`")
 		embed.add_field(name="channel (channel):", value="Sets the channel the bot will post fortunes into. Usage example: `f!channel #fortunes`")
 		embed.add_field(name="options (options):", value="Set options for fortunes in this server, use https://linux.die.net/man/6/fortune as a reference to what's supported. Usage example: `f!options -e startrek cookie`")
 		embed.add_field(name="feedback (message):", value="Allows you to send feedback to the developer of this bot. An example of the feedback command in use would look like 'f!feedback this bot is great!'")
@@ -413,19 +434,39 @@ async def setup(ctx):
 @bot.command(aliases=['list', 'fortune'])
 @commands.has_guild_permissions(manage_channels=True)
 @commands.cooldown(1,5,commands.BucketType.user)
-async def fortunes(ctx):
-	cursor.execute("SELECT options FROM Servers WHERE id=?", (ctx.guild.id,))
-	options = cursor.fetchone()[0]
+async def fortunes(ctx, *, arg=''):
+	args = ['fortune']
+	if arg != '':  # If an arg is provided
+		options = arg
+		args += arg.split(" ")
+		# Make sure no restricted arguments try to pass
+		if (restricted(args)):
+			await send(ctx, "Illegal options detected!", "The options `-f`, `-m`, `-n`, and `-w` are disabled for security reasons and cannot be used!")
+			return		
+	else:  # Otherwise pull from DB
+		cursor.execute("SELECT options FROM Servers WHERE id=?", (ctx.guild.id,))
+		options = cursor.fetchone()[0]
+		if options is not None:
+			args += options.split(" ")
 
-	args = ['fortune', '-f']
+	args.insert(1, "-f",) # Add -f after all of that to avoid restricted yelling
+	
+	fortuneCall = subprocess.run(args, stderr=subprocess.PIPE, text=True)
 
-	# If the server has options set, show what it looks like with those options
-	if options is not None:
-		args += options.split(" ")
+	# Exit code is 0 through -f flag, read exit code to find errors
+	if fortuneCall.returncode != 0:
+		# Format stderr for printing, make newlines actually work, etc.
+		stderr = fortuneCall.stderr.replace('\\n', '\n').replace('\\t', '\t')
+		embed = await getEmbed(ctx, "Something went wrong getting categories!", 
+			f"""The options `{options}` were not accepted by fortune.\n 
+			Please refer to https://linux.die.net/man/6/fortune for a list of all options.""")
+		embed.add_field(name="Error:", value="```" + stderr + "```", inline=True)
+		await ctx.send(embed=embed)
+		return
 
-	fortunes = subprocess.run(args, stderr=subprocess.PIPE, text=True).stderr.replace("/usr/share/games/", "")
+	fortunes = fortuneCall.stderr.replace("/usr/share/games/", "").replace('\\n', '\n').replace('\\t', '\t')
 
-	message = await send(ctx, "Listing fortunes:", f"List fortune categories and % chances with the options `{options}`:\n```{fortunes}```")
+	message = await send(ctx, "Listing fortunes:", f"List fortune categories and % chances with {'the option(s) `' + options + '`' if options is not None else 'no options.'}:\n```{fortunes}```")
 	embed = await getEmbed(ctx, "Listing fortunes:", "Fortunes have been hidden to keep chat clean.")
 	await asyncio.sleep(300)
 	await message.edit(embed=embed)
@@ -445,7 +486,7 @@ async def channel(ctx, *, arg=''):
 
 	# If we can't find the channel but it has been set
 	if storedChannel is None and channelID != -1:
-		pront("WARNING", 'channel was deleted')
+		pront("WARNING", ctx.guild.name + "'s previous channel was deleted")
 		cursor.execute('UPDATE Servers SET channel=? WHERE id=?', (None, ctx.guild.id))
 		db.commit()
 
@@ -482,7 +523,7 @@ async def channel(ctx, *, arg=''):
 	cursor.execute('UPDATE Servers SET channel=? WHERE id=?', (channel.id, ctx.guild.id))
 	db.commit()
 
-
+# Set options for the fortune task
 @bot.command(aliases=['option', 'setoptions'])
 @commands.has_guild_permissions(manage_channels=True)
 @commands.cooldown(1,5,commands.BucketType.user)
@@ -514,18 +555,11 @@ async def options(ctx, *, arg=''):
 	args = ['fortune'] + arg.split(" ")
 
 	# Make sure no restricted arguments try to pass
-	restricted = ["f", "m", "n", "w"]
-	for restriction in restricted:
-		for a in args:
-			# If the first character is a dash
-			if a[0] == "-":
-				# If the argument also has an illegal character
-				if a.find(restriction) != -1:
-					await send(ctx, "Illegal options detected!", "The options `-f`, `-m`, `-n`, and `-w` are disabled for security reasons and cannot be set as options!")
-					return
-			
+	if (restricted(args)):
+		await send(ctx, "Illegal options detected!", "The options `-f`, `-m`, `-n`, and `-w` are disabled for security reasons and cannot be set as options!")
+		return			
 
-	# Redirect to /dev/null to supress output
+	# Redirect to /dev/null to supress cmd output
 	fortuneCall = subprocess.run(args, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
 
 	# If the return code indicates an error
