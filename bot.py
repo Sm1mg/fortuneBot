@@ -473,7 +473,7 @@ async def fortunes(ctx, *, arg=''):
 		# Format stderr for printing, make newlines actually work, etc.
 		stderr = fortuneCall.stderr.replace('\\n', '\n').replace('\\t', '\t')
 		embed = await getEmbed(ctx, "Something went wrong getting categories!", 
-			f"""The options `{options}` were not accepted by fortune.\n 
+			f"""The option(s) `{options}` were not accepted by fortune.\n 
 			Please refer to https://linux.die.net/man/6/fortune for a list of all options.""")
 		embed.add_field(name="Error:", value="```ansi\n" + stderr + "```", inline=True)
 		await ctx.send(embed=embed)
