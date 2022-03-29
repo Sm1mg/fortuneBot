@@ -319,9 +319,9 @@ async def sync():
 	delta = target-now
 	if delta.total_seconds() < 0:
 		pront("ERROR", "Time calculation delta returned negative value (%s" % delta + "), something has gone horribly wrong")
-	pront("LOG", 'Entering cryogenic storage for: %s' % delta + " until %s " % target)
+	pront("OKBLUE", 'Entering cryogenic storage for: %s' % delta + " until %s " % target)
 	await asyncio.sleep(delta.total_seconds())
-	pront("LOG", 'Cryogenic freeze completed, we are now in the future! ' + str(datetime.now()))
+	pront("OKGREEN", 'Cryogenic freeze completed, we are now in the future! ' + str(datetime.now()))
 
 	if datetime.now().strftime("%H:%M") != "12:00":
 		pront("ERROR", "Stupid time calculation was wrong, we're off!  It's actually %s" % datetime.now())
@@ -335,7 +335,7 @@ async def sync():
 # Task to print a fortune every 24 hours
 @tasks.loop(seconds = 86400)
 async def fortune():
-	sync.stop()
+	sync.cancel()  # Cancel sync so it won't wait until the next iteration
 	# Declare time now so the exec duration of fortune doesn't matter
 	time = datetime.now().strftime("%H:%M")
 	pront("LOG", "Fortunes are going out")
@@ -389,8 +389,6 @@ async def fortune():
 	# Safeguard against fortune desync
 	if time != "12:00":
 		pront("ERROR", "Fortune task has become desynced with system time, restarting sync.")
-		# Wait so sync task doesn't immediately restart fortune
-		await asyncio.sleep(80)
 		sync.start()
 		# Not sure why I have to use cancel now but I do to actually close fortune()
 		fortune.cancel()
