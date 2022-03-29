@@ -13,6 +13,7 @@ print("Starting up...")
 # TODO 2 look through code and find ratelimit optimizations
 # TODO 4 Add more prints now that they don't look like ass
 # TODO 5 Make sure the new sync code works properly
+# TODO 4 i can probably enable -m with no problems
 
 # Create database link
 db = sql.connect('database.db')
