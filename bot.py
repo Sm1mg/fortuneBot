@@ -418,6 +418,7 @@ async def help(ctx, helpType=None):
 		embed.add_field(name="channel (channel):", value="Sets the channel the bot will post fortunes into. Usage example: `f!channel #fortunes`")
 		embed.add_field(name="options (options):", value="Set options for fortunes in this server, use https://linux.die.net/man/6/fortune as a reference to what's supported. Usage example: `f!options -e startrek cookie`")
 		embed.add_field(name="feedback (message):", value="Allows you to send feedback to the developer of this bot. An example of the feedback command in use would look like 'f!feedback this bot is great!'")
+		embed.add_field(name="Key:", value="`()` = Mandatory argument\n`[]` = Optional argument")
 		await ctx.send(embed=embed)
 		return
 	# If no helpType is asked for
@@ -474,13 +475,13 @@ async def fortunes(ctx, *, arg=''):
 		embed = await getEmbed(ctx, "Something went wrong getting categories!", 
 			f"""The options `{options}` were not accepted by fortune.\n 
 			Please refer to https://linux.die.net/man/6/fortune for a list of all options.""")
-		embed.add_field(name="Error:", value="```" + stderr + "```", inline=True)
+		embed.add_field(name="Error:", value="```ansi" + stderr + "```", inline=True)
 		await ctx.send(embed=embed)
 		return
 
 	fortunes = fortuneCall.stderr.replace("/usr/share/games/", "").replace('\\n', '\n').replace('\\t', '\t')
 
-	message = await send(ctx, "Listing fortunes:", f"List fortune categories and % chances with {'the option(s) `' + options + '`' if options is not None else 'no options.'}:\n```{fortunes}```")
+	message = await send(ctx, "Listing fortunes:", f"List fortune categories and % chances with {'the option(s) `' + options + '`' if options is not None else 'no options.'}:\n```ansi{fortunes}```")
 	embed = await getEmbed(ctx, "Listing fortunes:", "Fortunes have been hidden to keep chat clean.")
 	await asyncio.sleep(300)
 	await message.edit(embed=embed)
@@ -584,7 +585,7 @@ async def options(ctx, *, arg=''):
 		embed = await getEmbed(ctx, "Something went wrong setting the options!", 
 		"""The options you specified were not accepted by fortune.\n 
 		Please refer to https://linux.die.net/man/6/fortune for a list of all options.""")
-		embed.add_field(name="Error:", value="```" + stderr + "```", inline=True)
+		embed.add_field(name="Error:", value="```ansi" + stderr + "```", inline=True)
 		await ctx.send(embed=embed)
 		return
 	cursor.execute("UPDATE Servers SET options=? WHERE id=?", (arg, ctx.guild.id))
@@ -653,11 +654,11 @@ async def replyFeedback(ctx, feedbackIndex, *, message="The developer fucked up 
 @bot.command()
 @commands.is_owner()
 async def banFeedback(ctx, id='', *, reason=''):
+	if ctx.message.mentions:
+		id = ctx.message.mentions[0].id
 	if id is None:
 		await send(ctx, 'You need to send a uID to ban or ping a user!')
 		return
-	if ctx.message.mentions:
-		id = ctx.message.mentions[0].id
 	if reason == '':
 		await send(ctx, 'You need to send a reason for the ban!')
 		return
@@ -738,7 +739,7 @@ import discord.ext.commands.errors
 @bot.command()
 async def cum(ctx):
 	if ctx.author.id != 334836951037509634:
-		raise discord.ext.commands.errors.CommandNotFound(message='Command "sus"')
+		raise discord.ext.commands.errors.CommandNotFound(message='Command "cum"')
 	if ctx.guild.voice_client is not None:
 		pront("LOG", 'already in vc, leaving.')
 		await ctx.voice_client.disconnect()
