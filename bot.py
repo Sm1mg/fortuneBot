@@ -323,8 +323,8 @@ async def sync():
 	await asyncio.sleep(delta.total_seconds())
 	pront("LOG", 'Cryogenic freeze completed, we are now in the future! ' + str(datetime.now()))
 
-	if now.strftime("%H:%M") != "12:00":
-		pront("ERROR", "Stupid time calculation was wrong, we're off!  It's actually %s" % datetime.now().strftime("%H:%M"))
+	if datetime.now().strftime("%H:%M") != "12:00":
+		pront("ERROR", "Stupid time calculation was wrong, we're off!  It's actually %s" % datetime.now())
 
 	# Prevent task from throwing an error by starting a running task
 	if fortune.is_running():
