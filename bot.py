@@ -451,9 +451,11 @@ async def setup(ctx):
 @commands.cooldown(1,5,commands.BucketType.user)
 async def fortunes(ctx, *, arg=''):
 	args = ['fortune']
+	options = None
 	if arg != '':  # If an arg is provided
-		options = arg
-		args += arg.split(" ")
+		if arg.lower() != "none":
+			options = arg
+			args += arg.split(" ")
 		# Make sure no restricted arguments try to pass
 		if (restricted(args)):
 			await send(ctx, "Illegal options detected!", "The options `-f`, `-m`, `-n`, and `-w` are disabled for security reasons and cannot be used!")
@@ -473,7 +475,7 @@ async def fortunes(ctx, *, arg=''):
 		# Format stderr for printing, make newlines actually work, etc.
 		stderr = fortuneCall.stderr.replace('\\n', '\n').replace('\\t', '\t')
 		embed = await getEmbed(ctx, "Something went wrong getting categories!", 
-			f"""The option(s) `{options}` were not accepted by fortune.\n 
+			f"""The option{'s' if len(args) > 2 else ''} `{options}` w{'ere' if len(args) > 2 else 'as'} not accepted by fortune.\n 
 			Please refer to https://linux.die.net/man/6/fortune for a list of all options.""")
 		embed.add_field(name="Error:", value="```ansi\n" + stderr + "```", inline=True)
 		await ctx.send(embed=embed)
@@ -481,7 +483,8 @@ async def fortunes(ctx, *, arg=''):
 
 	fortunes = fortuneCall.stderr.replace("/usr/share/games/", "").replace('\\n', '\n').replace('\\t', '\t')
 
-	message = await send(ctx, "Listing fortunes:", f"List fortune categories and % chances with {'the option(s) `' + options + '`' if options is not None else 'no options.'}:\n```ansi\n{fortunes}```")
+	suffix = f"the option{'s' if len(args) > 2 else ''} `" + options + "`" if options is not None else 'no options.'
+	message = await send(ctx, "Listing fortunes:", f"List fortune categories and % chances with " + suffix + f":\n```ansi\n{fortunes}```")
 	embed = await getEmbed(ctx, "Listing fortunes:", "Fortunes have been hidden to keep chat clean.")
 	await asyncio.sleep(300)
 	await message.edit(embed=embed)
@@ -495,12 +498,12 @@ async def channel(ctx, *, arg=''):
 	cursor.execute('SELECT channel FROM Servers WHERE id=?',(ctx.guild.id,))
 	channelID = cursor.fetchone()[0]
 	# Can't guild.get_channel of None so do a little trolling
-	if channelID == None:
-		channelID = -1
+	#if channelID == None:
+	#	channelID = -1
 	storedChannel = ctx.guild.get_channel(channelID)
 
 	# If we can't find the channel but it has been set
-	if storedChannel is None and channelID != -1:
+	if storedChannel is None and channelID != None:
 		pront("WARNING", ctx.guild.name + "'s previous channel was deleted")
 		cursor.execute('UPDATE Servers SET channel=? WHERE id=?', (None, ctx.guild.id))
 		db.commit()
@@ -508,7 +511,7 @@ async def channel(ctx, *, arg=''):
 	# If there isn't a channel mentioned
 	if not ctx.message.channel_mentions:
 		# If we don't already have a channel set
-		if channelID == -1:
+		if channelID == None:
 			await send(ctx, 'There is no channel set.', 'Please mention a channel for the bot to post fortunes into.')
 			return
 		# If we do, say what it is
@@ -523,7 +526,7 @@ async def channel(ctx, *, arg=''):
 
 	channel = channel[0]
 	# Already channel
-	if int(channel.id) == int(channelID):
+	if channel.id == channelID:
 		await send(ctx, 'Error changing channel!', f'`{channel.name}` is already being used for fortunes!')
 		return
 
@@ -590,7 +593,7 @@ async def options(ctx, *, arg=''):
 		return
 	cursor.execute("UPDATE Servers SET options=? WHERE id=?", (arg, ctx.guild.id))
 	db.commit()
-	await send(ctx, "Success!", f"The option{'s' if len(args) > 2 else ''} `{arg}` have been successfully set.")
+	await send(ctx, "Success!", f"The option{'s' if len(args) > 2 else ''} `{arg}` ha{'ve' if len(args) > 2 else 's'} been successfully set.")
 
 
 # Feedback command (300 second cooldown)
