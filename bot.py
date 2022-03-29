@@ -484,7 +484,7 @@ async def fortunes(ctx, *, arg=''):
 
 	fortunes = fortuneCall.stderr.replace("/usr/share/games/", "").replace('\\n', '\n').replace('\\t', '\t')
 
-	suffix = f"the option{'s' if len(args) > 2 else ''} `" + options + "`" if options is not None else 'no options.'
+	suffix = f"the option{'s' if len(args) > 2 else ''} `" + options + "`" if options is not None else 'no options'
 	message = await send(ctx, "Listing fortunes:", f"List fortune categories and % chances with " + suffix + f":\n```ansi\n{fortunes}```")
 	embed = await getEmbed(ctx, "Listing fortunes:", "Fortunes have been hidden to keep chat clean.")
 	await asyncio.sleep(300)
