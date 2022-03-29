@@ -475,13 +475,13 @@ async def fortunes(ctx, *, arg=''):
 		embed = await getEmbed(ctx, "Something went wrong getting categories!", 
 			f"""The options `{options}` were not accepted by fortune.\n 
 			Please refer to https://linux.die.net/man/6/fortune for a list of all options.""")
-		embed.add_field(name="Error:", value="```ansi" + stderr + "```", inline=True)
+		embed.add_field(name="Error:", value="```ansi\n" + stderr + "```", inline=True)
 		await ctx.send(embed=embed)
 		return
 
 	fortunes = fortuneCall.stderr.replace("/usr/share/games/", "").replace('\\n', '\n').replace('\\t', '\t')
 
-	message = await send(ctx, "Listing fortunes:", f"List fortune categories and % chances with {'the option(s) `' + options + '`' if options is not None else 'no options.'}:\n```ansi{fortunes}```")
+	message = await send(ctx, "Listing fortunes:", f"List fortune categories and % chances with {'the option(s) `' + options + '`' if options is not None else 'no options.'}:\n```ansi\n{fortunes}```")
 	embed = await getEmbed(ctx, "Listing fortunes:", "Fortunes have been hidden to keep chat clean.")
 	await asyncio.sleep(300)
 	await message.edit(embed=embed)
@@ -585,7 +585,7 @@ async def options(ctx, *, arg=''):
 		embed = await getEmbed(ctx, "Something went wrong setting the options!", 
 		"""The options you specified were not accepted by fortune.\n 
 		Please refer to https://linux.die.net/man/6/fortune for a list of all options.""")
-		embed.add_field(name="Error:", value="```ansi" + stderr + "```", inline=True)
+		embed.add_field(name="Error:", value="```ansi\n" + stderr + "```", inline=True)
 		await ctx.send(embed=embed)
 		return
 	cursor.execute("UPDATE Servers SET options=? WHERE id=?", (arg, ctx.guild.id))
