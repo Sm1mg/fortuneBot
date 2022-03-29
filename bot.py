@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, timedelta
 from discord.ext import commands, tasks
 import sqlite3 as sql
 import os
@@ -11,11 +11,8 @@ import random
 print("Starting up...")
 
 # TODO 2 look through code and find ratelimit optimizations
-# TODO 3 find a better solution than ``` -> ''\'
 # TODO 4 Add more prints now that they don't look like ass
-# TODO 5 Make sync task calculate how long it is until next fortune and wait ~until then
-# TODO 6 figure out what happened to the tasks being weird
-# TODO 8 make sure new list command works properly
+# TODO 5 Make sure the new sync code works properly
 
 # Create database link
 db = sql.connect('database.db')
@@ -138,17 +135,21 @@ async def buildtables():
 def pront(lvl, content):
 	colors = {
 		"LOG" : "",
+		"OKBLUE" : "\033[94m",
+		"OKCYAN" : "\033[96m",
+		"OKGREEN" : "\033[92m",
 		"WARNING" : "\033[93m",
 		"ERROR" : "\033[91m",
 		"NONE" : "\033[0m"
 	}
-	print(colors[lvl] + "{" + datetime.now().strftime("%x %X") + "} " + lvl + ": " + content + colors["NONE"])
+	print(colors[lvl] + "{" + datetime.now().strftime("%x %X") + "} " + lvl + ": " + str(content) + colors["NONE"])
 
 # Function to check if args contain illegal options
 def restricted(args):
 	restricted = ["f", "m", "n", "w"]
 	for restriction in restricted:
 		for a in args:
+			# Skip empty strings
 			if len(a) == 0:
 				continue
 			# If the first character is a dash
@@ -308,13 +309,28 @@ async def on_raw_reaction_add(payload):
 # Align fortune task to start at the right time
 @tasks.loop(seconds = 1)
 async def sync():
-	time = datetime.now().strftime("%H:%M")
-	if time == "12:00":
-		# Prevent task from throwing an error by starting a running task
-		if fortune.is_running():
-			pront("ERROR", "Fortune task was already running when sync fired, something has gone terribly wrong.")
-			fortune.cancel()
-		fortune.start()
+	now = datetime.now()
+
+	# Calculate ~how long to wait
+	if int(now.strftime("%H")) < 12: # If we don't have to wait another day
+		target = datetime.today().replace(hour = 12, minute = 00, second = 00, microsecond = 0)
+	else: # Otherwise
+		target = (datetime.today() + timedelta(days=1)).replace(hour = 12, minute = 00, second = 00, microsecond = 0)
+	delta = target-now
+	if delta.total_seconds() < 0:
+		pront("ERROR", "Time calculation delta returned negative value (%s" % delta + "), something has gone horribly wrong")
+	pront("LOG", 'Entering cryogenic storage for: %s' % delta + " until %s " % target)
+	await asyncio.sleep(delta.total_seconds())
+	pront("LOG", 'Cryogenic freeze completed, we are now in the future! ' + str(datetime.now()))
+
+	if now.strftime("%H:%M") != "12:00":
+		pront("ERROR", "Stupid time calculation was wrong, we're off!  It's actually %s" % datetime.now().strftime("%H:%M"))
+
+	# Prevent task from throwing an error by starting a running task
+	if fortune.is_running():
+		pront("ERROR", "Fortune task was already running when sync fired, something has gone terribly wrong.")
+		fortune.cancel()
+	fortune.start()
 
 # Task to print a fortune every 24 hours
 @tasks.loop(seconds = 86400)
@@ -353,7 +369,7 @@ async def fortune():
 
 		embed = discord.Embed(
 			title='Daily fortune:',
-			description=f"```{result}```",
+			description=f"```ansi\n{result}\n```",  # Ansi formatting to make Android clients full box
 			color=await getRandomHex(server[0])
 		)
 		embed.set_author(
