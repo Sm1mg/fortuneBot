@@ -310,6 +310,7 @@ async def on_raw_reaction_add(payload):
 # Align fortune task to start at the right time
 @tasks.loop(count=1)
 async def sync():
+	fortune.cancel()
 	now = datetime.now()
 
 	# Calculate ~how long to wait
@@ -317,9 +318,12 @@ async def sync():
 		target = datetime.today().replace(hour = 12, minute = 00, second = 00, microsecond = 0)
 	else: # Otherwise
 		target = (datetime.today() + timedelta(days=1)).replace(hour = 12, minute = 00, second = 00, microsecond = 0)
+
 	delta = target-now
 	if delta.total_seconds() < 0:
 		pront("ERROR", "Time calculation delta returned negative value (%s" % delta + "), something has gone horribly wrong")
+		return
+	
 	pront("OKBLUE", 'Entering cryogenic storage for: %s' % delta + " until %s " % target)
 	await asyncio.sleep(delta.total_seconds())
 	pront("OKGREEN", 'Cryogenic freeze completed, we are now in the future! ' + str(datetime.now()))
@@ -336,8 +340,9 @@ async def sync():
 # Task to print a fortune every 24 hours
 @tasks.loop(seconds = 86400)
 async def fortune():
+	sync.cancel()
 	# Declare time now so the exec duration of fortune doesn't matter
-	time = datetime.now().strftime("%H:%M")
+	time = datetime.now()
 	pront("LOG", "Fortunes are going out")
 	cursor.execute("SELECT * FROM Servers")
 	servers = cursor.fetchall()
@@ -379,15 +384,17 @@ async def fortune():
 		message = await ctx.send(embed=embed)
 		await message.add_reaction("🌟")
 
+	pront("OKGREEN", "Fortunes completed, took " + str(datetime.now() - time) + " to complete.")
+
+	# Flag for fortune taking longer than a minute to exec
+	if time.strftime("%H:%M") != datetime.now().strftime("%H:%M"):
+		pront("ERROR", "!!!!!!!!!!!!!!!!!!!!\nFortune task took > 1 minute to execute, DO SOMETHING\n!!!!!!!!!!!!!!!!!!!!")
+
 	# Refresh the bot's status just for fun
 	await refreshStatus()
 
-	# Flag for fortune taking longer than a minute to exec
-	if time != datetime.now().strftime("%H:%M"):
-		pront("ERROR", "!!!!!!!!!!!!!!!!!!!!\nFortune task took > 1 minute to execute, DO SOMETHING\n!!!!!!!!!!!!!!!!!!!!")
-
 	# Safeguard against fortune desync
-	if time != "12:00":
+	if time.strftime("%H:%M") != "12:00":
 		pront("ERROR", "Fortune task has become desynced with system time, restarting sync.")
 		sync.start()
 		# Not sure why I have to use cancel now but I do to actually close fortune()
