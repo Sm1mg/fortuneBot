@@ -308,7 +308,7 @@ async def on_raw_reaction_add(payload):
 ##
 
 # Align fortune task to start at the right time
-@tasks.loop(seconds = 1)
+@tasks.loop(count=1)
 async def sync():
 	now = datetime.now()
 
@@ -336,7 +336,6 @@ async def sync():
 # Task to print a fortune every 24 hours
 @tasks.loop(seconds = 86400)
 async def fortune():
-	sync.cancel()  # Cancel sync so it won't wait until the next iteration
 	# Declare time now so the exec duration of fortune doesn't matter
 	time = datetime.now().strftime("%H:%M")
 	pront("LOG", "Fortunes are going out")
