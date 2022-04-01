@@ -12,7 +12,6 @@ print("Starting up...")
 
 # TODO 2 look through code and find ratelimit optimizations
 # TODO 4 Add more prints now that they don't look like ass
-# TODO 5 Make sure the new sync code works properly
 # TODO 4 i can probably enable -m with no problems
 
 # Create database link
@@ -183,16 +182,6 @@ async def on_command_error(ctx, error):
 		await send(ctx, 'Command not found:', f'{str(error)} is not a valid command, please refer to f!help for a list of commands.')
 		return
 
-	# If the bot doesn't have high enough permissions to do something
-	if isinstance(getattr(error, 'original', error), discord.Forbidden):
-		embed = await getEmbed(ctx, "The bot doesn't have enough permissions to do this!")
-		embed.add_field(name='What went wrong:',
-						value="This error appears when the bot doesn't have the permissions it needs.  This is likely caused by the order of roles in this server.", inline=True)
-		embed.add_field(name='How to fix it:',
-						value=f"Most likely you can fix this by moving the role created for the bot ({ctx.guild.self_role.mention}) to the top of your server's role list.  If the issue persists, feel free to submit a bug report with f!feedback!", inline=True)
-		await ctx.send(embed=embed)
-		return
-
 	# If a command is on cooldown
 	if isinstance(error, commands.CommandOnCooldown):
 		await send(ctx, 'Command on cooldown:', f'This command is on cooldown, please try again in {round(error.retry_after)} seconds.')
@@ -331,7 +320,7 @@ async def fortune():
 	if datetime.now().strftime("%H:%M") != "12:00":
 		pront("ERROR", "Stupid time calculation was wrong, we're off!  It's actually %s" % datetime.now())
 
-	
+
 	# Declare time now so the exec duration of fortune doesn't matter
 	time = datetime.now()
 	pront("LOG", "Fortunes are going out")
@@ -340,7 +329,7 @@ async def fortune():
 	# Loop through every server in the database
 	for server in servers:
 		if server[1] is None:
-			pront("WARNING", server[0] + " has no set channel, skipping.")
+			pront("WARNING", str(server[0]) + " has no set channel, skipping.")
 			continue
 
 		ctx = bot.get_channel(server[1])
