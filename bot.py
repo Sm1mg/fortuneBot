@@ -173,7 +173,7 @@ async def on_ready():
 	cursor.execute('SELECT id FROM Servers')
 	pront('LOG', 'Registered server IDs: ' + str(cursor.fetchall()))
 	pront('LOG', 'Discord listed server IDs:' + str(bot.guilds))
-	sync.start()
+	fortune.start()
 
 # Custom error handler
 @bot.event
@@ -307,19 +307,19 @@ async def on_raw_reaction_add(payload):
 ## Tasks
 ##
 
-# Align fortune task to start at the right time
-@tasks.loop(count=1)
-async def sync():
-	fortune.cancel()
-	now = datetime.now()
-
+# Task to print a fortune every 24 hours
+@tasks.loop(seconds = 0)
+async def fortune():
+	# Synchronize fortune task
+	time = datetime.now()
+	
 	# Calculate ~how long to wait
-	if int(now.strftime("%H")) < 12: # If we don't have to wait another day
+	if int(time.strftime("%H")) < 12: # If we don't have to wait another day
 		target = datetime.today().replace(hour = 12, minute = 00, second = 00, microsecond = 0)
 	else: # Otherwise
 		target = (datetime.today() + timedelta(days=1)).replace(hour = 12, minute = 00, second = 00, microsecond = 0)
 
-	delta = target-now
+	delta = target-time
 	if delta.total_seconds() < 0:
 		pront("ERROR", "Time calculation delta returned negative value (%s" % delta + "), something has gone horribly wrong")
 		return
@@ -331,16 +331,7 @@ async def sync():
 	if datetime.now().strftime("%H:%M") != "12:00":
 		pront("ERROR", "Stupid time calculation was wrong, we're off!  It's actually %s" % datetime.now())
 
-	# Prevent task from throwing an error by starting a running task
-	if fortune.is_running():
-		pront("ERROR", "Fortune task was already running when sync fired, something has gone terribly wrong.")
-		fortune.cancel()
-	fortune.start()
-
-# Task to print a fortune every 24 hours
-@tasks.loop(seconds = 86400)
-async def fortune():
-	sync.cancel()
+	
 	# Declare time now so the exec duration of fortune doesn't matter
 	time = datetime.now()
 	pront("LOG", "Fortunes are going out")
@@ -348,8 +339,17 @@ async def fortune():
 	servers = cursor.fetchall()
 	# Loop through every server in the database
 	for server in servers:
+		if server[1] is None:
+			pront("WARNING", server[0] + " has no set channel, skipping.")
+			continue
+
 		ctx = bot.get_channel(server[1])
 		options = server[2]
+
+		# If we couldn't find the channel for fortunes
+		if ctx is None:
+			pront("WARNING", "Could not find channel for " + server[0] + " even though it exists")
+			continue
 
 		# Split stored options into argument array
 		args = ['fortune']
@@ -357,11 +357,6 @@ async def fortune():
 		# If there are options set
 		if options is not None:
 			args += options.split(" ")
-
-		# If we couldn't find the channel for fortunes
-		if ctx is None:
-			pront("WARNING", str(server[0]) + " has no set channel, skipping.")
-			continue
 		
 		# Execute fortune with the guild's options
 		result = subprocess.run(args, stdout=subprocess.PIPE, text=True).stdout
@@ -395,10 +390,7 @@ async def fortune():
 
 	# Safeguard against fortune desync
 	if time.strftime("%H:%M") != "12:00":
-		pront("ERROR", "Fortune task has become desynced with system time, restarting sync.")
-		sync.start()
-		# Not sure why I have to use cancel now but I do to actually close fortune()
-		fortune.cancel()
+		pront("ERROR", "Fortune task has become desynced with system time!")
 
 ##
 ## Commands
