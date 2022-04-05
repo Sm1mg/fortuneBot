@@ -10,6 +10,7 @@ import random
 [4, 8, 15, 16, 23, 42]
 print("Starting up...")
 
+# TODO 0 Make -o or off/ options require fortune channel to be NSFW(?) <-- Too easy to get around, too hard to implement
 # TODO 2 look through code and find ratelimit optimizations
 # TODO 4 Add more prints now that they don't look like ass
 
@@ -519,11 +520,11 @@ async def channel(ctx, *, arg=''):
 	channel = channel[0]
 	# Already channel
 	if channel.id == channelID:
-		await send(ctx, 'Error changing channel!', f'`{channel.name}` is already being used for fortunes!')
+		await send(ctx, 'Error changing channel!', f'`{channel.mention}` is already being used for fortunes!')
 		return
 
 
-	await send(ctx, 'Changing channel:', f'Changing the channel where fortunes are sent {"to `" + channel.name + "`" if storedChannel is None else "from `" + storedChannel.name + "` to `" + channel.name + "`"}.')
+	await send(ctx, 'Changing channel:', f'Changing the channel where fortunes are sent {"to " + channel.mention if storedChannel is None else "from " + storedChannel.mention + " to " + channel.mention}.')
 	# Push the new channel to the database
 	cursor.execute('UPDATE Servers SET channel=? WHERE id=?', (channel.id, ctx.guild.id))
 	db.commit()
