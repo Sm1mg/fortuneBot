@@ -12,7 +12,6 @@ print("Starting up...")
 
 # TODO 2 look through code and find ratelimit optimizations
 # TODO 4 Add more prints now that they don't look like ass
-# TODO 4 i can probably enable -m with no problems
 
 # Create database link
 db = sql.connect('database.db')
@@ -81,6 +80,8 @@ async def updateDB():
 # Refresh the bot's status to match server counts
 async def refreshStatus():
 	await updateDB()
+	await bot.change_presence(activity=discord.Activity(
+		type=discord.ActivityType.watching, name=f"for f! in {len(bot.guilds):,} servers!"))
 	cursor.execute('SELECT id FROM Servers')
 	cachedServers = len(cursor.fetchall())
 	servers = len(bot.guilds)
@@ -89,9 +90,6 @@ async def refreshStatus():
 			"!!!!!!!!!!!COUNT OF CACHED SERVERS MISSING DISCORD LISTED SERVERS!!!!!!!!!!!!")
 		pront("ERROR", f'cachedServers = {cachedServers}')
 		pront("ERROR", f'serverCount = {servers}')
-	await bot.change_presence(activity=discord.Activity(
-		type=discord.ActivityType.watching, name=f"for f! in {servers:,} servers!"))
-
 # Build database tables if they don't already exist
 async def buildtables():
 	cursor.execute(
@@ -172,7 +170,7 @@ async def on_ready():
 	cursor.execute('SELECT id FROM Servers')
 	pront('LOG', 'Registered server IDs: ' + str(cursor.fetchall()))
 	pront('LOG', 'Discord listed server IDs:' + str(bot.guilds))
-	fortune.start()
+	sync.start()
 
 # Custom error handler
 @bot.event
@@ -296,9 +294,9 @@ async def on_raw_reaction_add(payload):
 ## Tasks
 ##
 
-# Task to print a fortune every 24 hours
-@tasks.loop(seconds = 0)
-async def fortune():
+# Task to sync fortune task
+@tasks.loop(count = 1)
+async def sync():
 	# Synchronize fortune task
 	time = datetime.now()
 	
@@ -317,10 +315,14 @@ async def fortune():
 	await asyncio.sleep(delta.total_seconds())
 	pront("OKGREEN", 'Cryogenic freeze completed, we are now in the future! ' + str(datetime.now()))
 
-	if datetime.now().strftime("%H:%M") != "12:00":
-		pront("ERROR", "Stupid time calculation was wrong, we're off!  It's actually %s" % datetime.now())
+	if not fortune.is_running():
+		fortune.start()
+		return
+	pront("ERROR", "Fortune was already running when sync fired, something has gone terribly wrong.")
 
-
+# Task to print a fortune
+@tasks.loop(count = 1)
+async def fortune():
 	# Declare time now so the exec duration of fortune doesn't matter
 	time = datetime.now()
 	pront("LOG", "Fortunes are going out")
@@ -372,21 +374,26 @@ async def fortune():
 
 	# Flag for fortune taking longer than a minute to exec
 	if time.strftime("%H:%M") != datetime.now().strftime("%H:%M"):
-		pront("ERROR", "!!!!!!!!!!!!!!!!!!!!\nFortune task took > 1 minute to execute, DO SOMETHING\n!!!!!!!!!!!!!!!!!!!!")
+		pront("ERROR", "!!!!!!!!!!!!!!!!!!!!\n\tFortune task took > 1 minute to execute, DO SOMETHING\n\t!!!!!!!!!!!!!!!!!!!!")
 
 	# Refresh the bot's status just for fun
 	await refreshStatus()
 
-	# Safeguard against fortune desync
+	# Check for fortune desync
 	if time.strftime("%H:%M") != "12:00":
 		pront("ERROR", "Fortune task has become desynced with system time!")
+	
+	if not sync.is_running():
+		sync.start()
+		return
+	pront("ERROR", "Sync task was already running when fortune tried to launch it!")
 
 ##
 ## Commands
 ##
 
 # Help command
-@bot.command()
+@bot.command(aliases = ['h'])
 async def help(ctx, helpType=None):
 	# Function to add the options for help to an embed
 	async def elaborate(embed):
@@ -485,9 +492,6 @@ async def channel(ctx, *, arg=''):
 	# Pull guild's channel
 	cursor.execute('SELECT channel FROM Servers WHERE id=?',(ctx.guild.id,))
 	channelID = cursor.fetchone()[0]
-	# Can't guild.get_channel of None so do a little trolling
-	#if channelID == None:
-	#	channelID = -1
 	storedChannel = ctx.guild.get_channel(channelID)
 
 	# If we can't find the channel but it has been set
@@ -518,13 +522,8 @@ async def channel(ctx, *, arg=''):
 		await send(ctx, 'Error changing channel!', f'`{channel.name}` is already being used for fortunes!')
 		return
 
-	# Checks if this is the first time entering a channel
-	if storedChannel is None or channelID is None:
-		suffix = f'to `{channel.name}`'
-	else:
-		suffix = f'from `{storedChannel.name}` to `{channel.name}`'
 
-	await send(ctx, 'Changing channel:', f'Changing the channel where fortunes are sent {suffix}.')
+	await send(ctx, 'Changing channel:', f'Changing the channel where fortunes are sent {"to `" + channel.name + "`" if storedChannel is None else "from `" + storedChannel.name + "` to `" + channel.name + "`"}.')
 	# Push the new channel to the database
 	cursor.execute('UPDATE Servers SET channel=? WHERE id=?', (channel.id, ctx.guild.id))
 	db.commit()
