@@ -300,18 +300,18 @@ async def on_raw_reaction_add(payload):
 async def sync():
 	# Synchronize fortune task
 	time = datetime.now()
-	
+
 	# Calculate ~how long to wait
 	if int(time.strftime("%H")) < 12: # If we don't have to wait another day
 		target = datetime.today().replace(hour = 12, minute = 00, second = 00, microsecond = 0)
 	else: # Otherwise
 		target = (datetime.today() + timedelta(days=1)).replace(hour = 12, minute = 00, second = 00, microsecond = 0)
 
-	delta = target-time
+	delta = target-datetime.now()
 	if delta.total_seconds() < 0:
 		pront("ERROR", "Time calculation delta returned negative value (%s" % delta + "), something has gone horribly wrong")
 		return
-	
+
 	pront("OKBLUE", 'Entering cryogenic storage for: %s' % delta + " until %s " % target)
 	await asyncio.sleep(delta.total_seconds())
 	pront("OKGREEN", 'Cryogenic freeze completed, we are now in the future! ' + str(datetime.now()))
