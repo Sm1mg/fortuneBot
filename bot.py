@@ -509,7 +509,7 @@ async def channel(ctx, *, arg=''):
 	if not ctx.message.channel_mentions:
 		# If we don't already have a channel set
 		if channelID == None:
-			await send(ctx, 'There is no channel set.', 'Please mention a channel for the bot to post fortunes into.')
+			await send(ctx, 'There is no channel set.', 'Please mention a channel for the bot to post fortunes into. (ex f!channel #fortunes)')
 			return
 		# If we do, say what it is
 		await send(ctx, 'Current channel:', f'The current channel is `{storedChannel}`, please mention a different channel with f!channel to change it.')
