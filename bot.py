@@ -13,6 +13,7 @@ print("Starting up...")
 # TODO 0 Make -o or off/ options require fortune channel to be NSFW(?) <-- Too easy to get around, too hard to implement
 # TODO 2 look through code and find ratelimit optimizations
 # TODO 4 Add more prints now that they don't look like ass
+# TODO 10 Figure out why the bot decided to miss servers in updateDB() (just network issues?)
 
 # Create database link
 db = sql.connect('database.db')
@@ -70,6 +71,9 @@ async def updateDB():
 		for guild in guilds:
 			pront("WARNING", f"Cleaning found new server {guild.name} ({guild.id}), adding to database")
 			cursor.execute("INSERT INTO Servers (id, channel, options) VALUES (?, ?, ?)", (guild.id, None, None))
+			# Run it again because it could fix something
+			updateDB()
+			return
 
 	if len(dbGuilds) != 0:  # entries not in discord
 		for guild in dbGuilds:
@@ -403,7 +407,7 @@ async def help(ctx, helpType=None):
 		await ctx.send(embed=embed)
 	# If the user wants help setting up the bot
 	if helpType == 'setup':
-		await send(ctx, 'Helping with Setup', """Simply run `f!channel` followed by the channel you want fortunes to be posted into. The bot will post in that channel on the next daily cycle!\n\n
+		await send(ctx, 'Helping with Setup', """Simply run `f!channel` followed by the channel you want fortunes to be posted into. (ex `f!channel #fortunes`.) The bot will post in that channel on the next daily cycle!\n\n
 			If you want to set custom options, like the chance for a category of fortune to appear, use f!options with the options you want from https://linux.die.net/man/6/fortune.
 		""")
 		return
