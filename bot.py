@@ -190,10 +190,6 @@ async def on_command_error(ctx, error):
 		await send(ctx, 'Command on cooldown:', f'This command is on cooldown, please try again in {round(error.retry_after)} seconds.')
 		return
 
-	# If the user isn't allowed to use a command
-	if isinstance(error, commands.MissingPermissions):
-		await send(ctx, 'Insufficient permissions:', 'You do not have the required permissions to run this command.')
-
 	# If we're being ratelimited (uh oh)
 	if isinstance(error, discord.HTTPException):
 		await send(ctx, "The bot is currently being ratelimited!", "Please report this to the developer with f!feedback alongside what you were doing to cause this!")
