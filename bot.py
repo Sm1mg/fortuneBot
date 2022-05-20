@@ -497,10 +497,11 @@ async def channel(ctx, *, arg=''):
 
 	# If we can't find the channel but it has been set
 	if storedChannel is None and channelID != None:
+		channelID = None
 		pront("WARNING", ctx.guild.name + "'s previous channel was deleted")
 		cursor.execute('UPDATE Servers SET channel=? WHERE id=?', (None, ctx.guild.id))
 		db.commit()
-
+		
 	# If there isn't a channel mentioned
 	if not ctx.message.channel_mentions:
 		# If we don't already have a channel set
