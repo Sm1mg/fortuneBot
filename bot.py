@@ -13,7 +13,6 @@ print("Starting up...")
 # TODO 0 Make -o or off/ options require fortune channel to be NSFW(?) <-- Too easy to get around, too hard to implement
 # TODO 2 look through code and find ratelimit optimizations
 # TODO 4 Add more prints now that they don't look like ass
-# TODO 8 Make it so blacklist doesnt make option look like shit
 
 # Create database link
 db = sql.connect('database.db')
@@ -31,18 +30,7 @@ intents.reactions = True
 bot = commands.Bot(command_prefix="f!", intent=intents, case_insensitive=True)
 bot.remove_command("help")
 
-# Get all fortune files from a specified directory
-def getFortuneFiles(dir):
-    contents = os.listdir(dir)
-    dats = []
-    for file in contents:
-        if file[-4:] == ".dat":
-            dats.append(file[:len(file) - 4])
-    return dats
 
-# Arrays to store fortunes
-regular = getFortuneFiles('/usr/share/games/fortunes')
-off = getFortuneFiles('/usr/share/games/fortunes/off')
 
 # Returns a random hexadecimal value from a given seed
 async def getRandomHex(seed):
@@ -576,51 +564,7 @@ async def options(ctx, *, arg=''):
 	if (restricted(args)):
 		await send(ctx, "Illegal options detected!", "The options `-f`, `-m`, `-n`, and `-w` are disabled for security reasons and cannot be set as options!")
 		return			
-	# TODO 999 CODE BELOW IS SHIT, HIGH CODE IS BAD, SOBER NOAH FIX IT (IT ALSO DOESNT WORK)
-	oFlag = False
-	for a in args:
-		# If the first character is a dash
-		if a[0] == "-":
-			if a.find("o") != -1:
-				oFlag = True
 
-	argcopy = args.copy()
-	# Check for blacklist request
-	for a in argcopy:
-		print(a)
-		# If the user wants to blacklist this file
-		if a[0] == ".":
-			args.remove(a)
-			a = a[1:]
-			copy = None
-			# If this file is in the off folder
-			if oFlag or a[:4] == "off/":
-				if a not in off:
-					pront("ERROR", "No fortunes with specified blacklist name!")
-					await send(ctx, "Error setting blacklist!", "There was no fortune found with that name!")
-					return
-				copy = off.copy()
-			else:
-			# If this file is regular
-				if a not in regular:
-					pront("ERROR", "No fortunes with specified blacklist name!")
-					await send(ctx, "Error setting blacklist!", "There was no fortune found with that name!")
-					return
-				copy = regular.copy()
-			copy.remove(a)
-			args += copy
-	#i know whats happening
-	#one array doesn't contain drugs, one doesnt contain people
-	#when they're being added and removing duplicates, it is keeping the ones that dont have duplicates
-	#please understand this i beg you
-	#so i need to do all of the blacklist at once (oh god that's gonna be a pain)
-	res = []
-	for i in args:
-		if i not in res:
-			res.append(i)
-	args = res
-	print(args)
-	
 	# Redirect to /dev/null to supress cmd output
 	fortuneCall = subprocess.run(args, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
 
