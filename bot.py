@@ -13,7 +13,6 @@ print("Starting up...")
 # TODO 0 Make -o or off/ options require fortune channel to be NSFW(?) <-- Too easy to get around, too hard to implement
 # TODO 2 look through code and find ratelimit optimizations
 # TODO 4 Add more prints now that they don't look like ass
-# TODO 10 Figure out why the bot decided to miss servers in updateDB() (just network issues?)
 
 # Create database link
 db = sql.connect('database.db')
@@ -61,8 +60,8 @@ async def updateDB():
 	cursor.execute("SELECT id FROM Servers")
 	dbGuilds = cursor.fetchall()
 
-	for guild in guilds:  # Loop through each server reported by discord
-		for guildTpl in dbGuilds:  # Loop through each entry pulled from db
+	for guild in guilds.copy():  # Loop through each server reported by discord
+		for guildTpl in dbGuilds.copy():  # Loop through each entry pulled from db
 			if guild.id == guildTpl[0]:  # If guild id is in database
 				dbGuilds.remove(guildTpl)  # Remove the match from the database pull
 				guilds.remove(guild) # Remove the match from the api pull
@@ -71,15 +70,11 @@ async def updateDB():
 		for guild in guilds:
 			pront("WARNING", f"Cleaning found new server {guild.name} ({guild.id}), adding to database")
 			cursor.execute("INSERT INTO Servers (id, channel, options) VALUES (?, ?, ?)", (guild.id, None, None))
-			# Run it again because it could fix something
-			updateDB()
-			return
 
 	if len(dbGuilds) != 0:  # entries not in discord
 		for guild in dbGuilds:
 			pront("WARNING", f"Cleaning found extra server {guild[0]}, removing from database")
 			cursor.execute("DELETE FROM Servers WHERE id=?", (guild[0],))
-
 	db.commit()
 
 # Refresh the bot's status to match server counts
