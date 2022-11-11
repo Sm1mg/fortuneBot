@@ -38,20 +38,20 @@ async def getRandomHex(seed):
 	return random.randint(0, 16777215)
 
 # Creates a standard Embed object
-async def getEmbed(ctx, title='', content='', footer=''):
+async def getEmbed(ctx, title='', content=''):
 	embed = discord.Embed(
 		title=title,
 		description=content,
 		color=await getRandomHex(ctx.author.id)
 	)
 	embed.set_author(name=ctx.author.display_name,
-					 icon_url=ctx.author.avatar_url)
-	# embed.set_footer(footer=footer)
+					 icon_url=ctx.author.display_avatar.url)
+
 	return embed
 
 # Creates and sends an Embed message
-async def send(ctx, title='', content='', footer=''):
-	embed = await getEmbed(ctx, title, content, footer)
+async def send(ctx, title='', content=''):
+	embed = await getEmbed(ctx, title, content)
 	return await ctx.send(embed=embed)
 
 # Make sure tables exist for all servers bot is in
