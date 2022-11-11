@@ -216,7 +216,7 @@ async def on_guild_join(guild):
 			)
 			embed.set_author(
 				name=guild.name,
-				icon_url=guild.icon_url
+				icon_url=guild.icon.url
 			)
 			await channel.send(embed=embed)
 			break
