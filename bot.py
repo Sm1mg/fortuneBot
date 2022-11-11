@@ -25,6 +25,7 @@ key = os.environ.get('key')
 
 intents = discord.Intents.default()
 intents.members = True
+intents.message_content = True
 
 bot = commands.Bot(command_prefix="f!", intents=intents, case_insensitive=True)
 bot.remove_command("help")
