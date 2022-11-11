@@ -276,7 +276,7 @@ async def on_raw_reaction_add(payload):
 		)
 		embed.set_author(
 			name=message.guild.name,
-			icon_url=message.guild.icon_url
+			icon_url=message.guild.icon.url
 		)
 		message = await payload.member.send(embed=embed)
 		await message.add_reaction("❌")
@@ -361,7 +361,7 @@ async def fortune():
 		)
 		embed.set_author(
 			name=ctx.guild.name,
-			icon_url=ctx.guild.icon_url
+			icon_url=ctx.guild.icon.url
 		)
 		message = await ctx.send(embed=embed)
 		await message.add_reaction("🌟")
