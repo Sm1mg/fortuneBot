@@ -55,7 +55,7 @@ async def send(ctx, title='', content=''):
 
 # Make sure tables exist for all servers bot is in
 async def updateDB():
-	guilds = bot.guilds
+	guilds = list(bot.guilds) # Convert the typical Sequence into a List
 	cursor.execute("SELECT id FROM Servers")
 	dbGuilds = cursor.fetchall()
 
