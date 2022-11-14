@@ -45,7 +45,7 @@ async def getEmbed(ctx, title='', content=''):
 		color=await getRandomHex(ctx.author.id)
 	)
 	embed.set_author(name=ctx.author.display_name,
-					 icon_url=ctx.author.display_avatar.url)
+					 icon_url=ctx.author.display_avatar.url if ctx.author.avatar is not None else None)
 
 	return embed
 
@@ -216,7 +216,7 @@ async def on_guild_join(guild):
 			)
 			embed.set_author(
 				name=guild.name,
-				icon_url=guild.icon.url
+				icon_url=guild.icon.url if guild.icon is not None else None
 			)
 			await channel.send(embed=embed)
 			break
@@ -239,18 +239,23 @@ async def on_guild_remove(guild):
 # When a reaction is added to a message
 @bot.event
 async def on_raw_reaction_add(payload):
-	# If the event was triggered by the bot
+# Do whatever we can with the payload first to reduce chance of ratelimiting
+
+	# If the event was triggered by the bot, ignore
 	if payload.user_id == bot.user.id:
 		return
 
-	# Do nothing if it is not a unicode emoji
+	# If it is not a unicode emoji, ignore
 	if not payload.emoji.is_unicode_emoji():
 		return
 
-	# If it's an emoji we don't care about
+	# If it's an emoji we don't care about, ignore
 	emojis = ["🌟", "❌"]
 	if payload.emoji.name not in emojis:
 		return
+
+# Things are looking good so far and we're out of options using the payload
+# Time to ask the API for everything else
 
 	# If it's in DMs get the message from DMs
 	if payload.member is None:
@@ -262,7 +267,7 @@ async def on_raw_reaction_add(payload):
 
 	reaction = discord.utils.get(message.reactions)
 
-	# If the reaction wasn't started by the bot
+	# If the reaction wasn't started by the bot, do nothing
 	if not reaction.me:
 		return
 
@@ -276,7 +281,7 @@ async def on_raw_reaction_add(payload):
 		)
 		embed.set_author(
 			name=message.guild.name,
-			icon_url=message.guild.icon.url
+			icon_url=message.guild.icon.url if message.guild.icon is not None else None
 		)
 		message = await payload.member.send(embed=embed)
 		await message.add_reaction("❌")
@@ -335,7 +340,7 @@ async def fortune():
 
 		# If we couldn't find the channel for fortunes
 		if ctx is None:
-			pront("WARNING", "Could not find channel for " + server[0] + " even though it exists")
+			pront("WARNING", "Could not find channel for " + server[0] + " even though it should exist")
 			continue
 
 		# Split stored options into argument array
@@ -361,7 +366,7 @@ async def fortune():
 		)
 		embed.set_author(
 			name=ctx.guild.name,
-			icon_url=ctx.guild.icon.url
+			icon_url=ctx.guild.icon.url if ctx.guild.icon is not None else None
 		)
 		message = await ctx.send(embed=embed)
 		await message.add_reaction("🌟")
