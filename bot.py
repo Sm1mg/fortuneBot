@@ -331,6 +331,10 @@ async def fortune():
 	servers = cursor.fetchall()
 	# Loop through every server in the database
 	for server in servers:
+		# server breakdown
+			#[0], guild ID
+			#[1], fortune channel ID in guild
+			#[2], fortune options
 		if server[1] is None:
 			pront("WARNING", str(server[0]) + " has no set channel, skipping.")
 			continue
@@ -411,7 +415,7 @@ async def help(ctx, helpType=None):
 	elif helpType == 'commands':
 		embed = await getEmbed(ctx, 'Helping describe commands')
 		embed.add_field(name="list [options]:", value="Prints the categories of fortune to be drawn from and the % chance that it will be chosen with the server's options (or the ones specified to the command).  Usage example: `f!list -a`")
-		embed.add_field(name="channel (channel):", value="Sets the channel the bot will post fortunes into. Usage example: `f!channel #fortunes`")
+		embed.add_field(name="channel (channel):", value="Sets the channel the bot will post fortunes into. Usage example: `f!channel #fortunes`  To unset the channel, use `f!channel None`")
 		embed.add_field(name="options (options):", value="Set options for fortunes in this server, use https://linux.die.net/man/6/fortune as a reference to what's supported. Usage example: `f!options -e startrek cookie`")
 		embed.add_field(name="feedback (message):", value="Allows you to send feedback to the developer of this bot. An example of the feedback command in use would look like 'f!feedback this bot is great!'")
 		embed.add_field(name="Key:", value="`()` = Mandatory argument\n`[]` = Optional argument")
@@ -507,6 +511,13 @@ async def channel(ctx, *, arg=''):
 		# If we don't already have a channel set
 		if channelID == None:
 			await send(ctx, 'There is no channel set.', 'Please mention a channel for the bot to post fortunes into. (ex f!channel #fortunes)')
+			return
+		
+		# See if the user wants to unset the existing channel
+		if arg.lower() == "none":
+			await send(ctx, 'Unsetting channel...', "Please note that this will stop the bot from printing daily fortunes until a fortune channel is set again.")
+			cursor.execute('UPDATE Servers SET channel=? WHERE id=?', (None, ctx.guild.id))
+			db.commit()
 			return
 		# If we do, say what it is
 		await send(ctx, 'Current channel:', f'The current channel is `{storedChannel}`, please mention a different channel with f!channel to change it.')
