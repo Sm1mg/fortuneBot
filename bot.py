@@ -283,6 +283,8 @@ async def on_raw_reaction_add(payload):
 			name=message.guild.name,
 			icon_url=message.guild.icon.url if message.guild.icon is not None else None
 		)
+		if message.footer is not None:
+			embed.set_footer(text=message.footer[0].text)
 		message = await payload.member.send(embed=embed)
 		await message.add_reaction("❌")
 		return
@@ -348,7 +350,7 @@ async def fortune():
 			continue
 
 		# Split stored options into argument array
-		args = ['fortune']
+		args = ['fortune', '-c']
 
 		# If there are options set
 		if options is not None:
@@ -360,8 +362,13 @@ async def fortune():
 		# Replace poor formatting
 		result = result.replace('```', "'''")
 		result = result.replace('\t', '        ')
-		# If there's just a % on a line (it's junk data)
-		result = result.replace('\n%\n', '\n\n')
+
+		cookie = result[1:result.find(")")]
+
+		# Remove first 2 lines from -c
+		result = result.split("\n",2)[2]
+
+
 
 		embed = discord.Embed(
 			title='Daily fortune:',
@@ -372,6 +379,7 @@ async def fortune():
 			name=ctx.guild.name,
 			icon_url=ctx.guild.icon.url if ctx.guild.icon is not None else None
 		)
+		embed.set_footer(text="Category: " + cookie + "Options: " + server[2])
 		message = await ctx.send(embed=embed)
 		await message.add_reaction("🌟")
 
