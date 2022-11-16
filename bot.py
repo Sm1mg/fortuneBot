@@ -270,7 +270,6 @@ async def on_raw_reaction_add(payload):
 	# If the reaction wasn't started by the bot, do nothing
 	if not reaction.me:
 		return
-
 	# If the reaction was a star (and it's in a server)
 	if reaction.emoji == "🌟" and payload.member is not None:
 		embed = discord.Embed(
@@ -283,8 +282,8 @@ async def on_raw_reaction_add(payload):
 			name=message.guild.name,
 			icon_url=message.guild.icon.url if message.guild.icon is not None else None
 		)
-		if message.footer is not None:
-			embed.set_footer(text=message.embed.footer[0].text)
+		if message.embeds[0].footer is not None:
+			embed.set_footer(text=message.embeds[0].footer.text)
 		message = await payload.member.send(embed=embed)
 		await message.add_reaction("❌")
 		return
@@ -379,7 +378,8 @@ async def fortune():
 			name=ctx.guild.name,
 			icon_url=ctx.guild.icon.url if ctx.guild.icon is not None else None
 		)
-		embed.set_footer(text="Category: " + cookie + ("\nOptions: " + server[2]) if server[2] is not None else '')
+		embed.set_footer(text="Category: " + cookie + ("\nOptions: " + server[2] if server[2] is not None else ''))
+		pront("OKBLUE", cookie)
 		message = await ctx.send(embed=embed)
 		await message.add_reaction("🌟")
 
@@ -423,8 +423,8 @@ async def help(ctx, helpType=None):
 	elif helpType == 'commands':
 		embed = await getEmbed(ctx, 'Helping describe commands')
 		embed.add_field(name="list [options]:", value="Prints the categories of fortune to be drawn from and the % chance that it will be chosen with the server's options (or the ones specified to the command).  Usage example: `f!list -a`")
-		embed.add_field(name="channel (channel):", value="Sets the channel the bot will post fortunes into. Usage example: `f!channel #fortunes`  To unset the channel, use `f!channel None`")
-		embed.add_field(name="options (options):", value="Set options for fortunes in this server, use https://linux.die.net/man/6/fortune as a reference to what's supported. Usage example: `f!options -e startrek cookie`")
+		embed.add_field(name="channel [channel]:", value="Sets the channel the bot will post fortunes into. Usage example: `f!channel #fortunes`  To unset the channel, use `f!channel None`")
+		embed.add_field(name="options [options]:", value="Set options for fortunes in this server, use https://linux.die.net/man/6/fortune as a reference to what's supported. Usage example: `f!options -e startrek cookie`")
 		embed.add_field(name="feedback (message):", value="Allows you to send feedback to the developer of this bot. An example of the feedback command in use would look like 'f!feedback this bot is great!'")
 		embed.add_field(name="Key:", value="`()` = Mandatory argument\n`[]` = Optional argument")
 		await ctx.send(embed=embed)
