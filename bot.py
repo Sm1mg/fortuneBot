@@ -284,7 +284,7 @@ async def on_raw_reaction_add(payload):
 			icon_url=message.guild.icon.url if message.guild.icon is not None else None
 		)
 		if message.footer is not None:
-			embed.set_footer(text=message.footer[0].text)
+			embed.set_footer(text=message.embed.footer[0].text)
 		message = await payload.member.send(embed=embed)
 		await message.add_reaction("❌")
 		return
@@ -368,7 +368,6 @@ async def fortune():
 
 		# Remove first 2 lines from -c
 		result = result.split("\n",2)[2]
-
 
 
 		embed = discord.Embed(
