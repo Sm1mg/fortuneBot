@@ -363,7 +363,8 @@ async def fortune():
 		result = result.replace('```', "'''")
 		result = result.replace('\t', '        ')
 
-		cookie = result[1:result.find(")")]
+		# Save which cookie the fortune is from (and hide the absolute directory if it is present)
+		cookie = result[1:result.find(")")].replace("/usr/share/games/", "")
 
 		# Remove first 2 lines from -c
 		result = result.split("\n",2)[2]
@@ -379,7 +380,7 @@ async def fortune():
 			name=ctx.guild.name,
 			icon_url=ctx.guild.icon.url if ctx.guild.icon is not None else None
 		)
-		embed.set_footer(text="Category: " + cookie + "Options: " + server[2])
+		embed.set_footer(text="Category: " + cookie + ("\nOptions: " + server[2]) if server[2] is not None else '')
 		message = await ctx.send(embed=embed)
 		await message.add_reaction("🌟")
 
