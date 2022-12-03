@@ -501,7 +501,7 @@ async def fortunes(ctx, *, arg=''):
 @bot.command()
 @commands.has_guild_permissions(manage_channels=True)
 @commands.cooldown(1,5,commands.BucketType.user)
-async def channel(ctx, *, arg=''):
+async def channel(ctx, arg=''):
 	# Pull guild's channel
 	cursor.execute('SELECT channel FROM Servers WHERE id=?',(ctx.guild.id,))
 	channelID = cursor.fetchone()[0]
@@ -527,7 +527,8 @@ async def channel(ctx, *, arg=''):
 			cursor.execute('UPDATE Servers SET channel=? WHERE id=?', (None, ctx.guild.id))
 			db.commit()
 			return
-		# If we do, say what it is
+			
+		# If a channel is already set, say what it is
 		await send(ctx, 'Current channel:', f'The current channel is `{storedChannel}`, please mention a different channel with f!channel to change it.')
 		return
 	
@@ -543,7 +544,9 @@ async def channel(ctx, *, arg=''):
 		await send(ctx, 'Error changing channel!', f'`{channel.mention}` is already being used for fortunes!')
 		return
 
-
+	if not channel.permissions_for(ctx.guild.me).send_messages:
+		await send(ctx, 'Insufficient permissions!', f"FortuneBot is unable to send messages in {channel.mention}, please select a different channel or edit the channel's permissions!")
+		return
 	await send(ctx, 'Changing channel:', f'Changing the channel where fortunes are sent {"to " + channel.mention if storedChannel is None else "from " + storedChannel.mention + " to " + channel.mention}.')
 	# Push the new channel to the database
 	cursor.execute('UPDATE Servers SET channel=? WHERE id=?', (channel.id, ctx.guild.id))
