@@ -345,8 +345,12 @@ async def fortune():
 
 		# If we couldn't find the channel for fortunes
 		if ctx is None:
-			pront("WARNING", "Could not find channel for " + str(server[0]) + " even though it should exist")
+			pront("WARNING", "Could not find channel for " + str(server[0]) + " even though it should exist... clearing the channel and skipping for now.")
+			cursor.execute('UPDATE Servers SET channel=? WHERE id=?', (None, server[0]))
+			db.commit()
 			continue
+
+		pront("OKBLUE", "Distributing fortunes for " + str(server[0]))
 
 		# Split stored options into argument array
 		args = ['fortune', '-c']
