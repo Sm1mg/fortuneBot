@@ -345,7 +345,7 @@ async def fortune():
 
 		# If we couldn't find the channel for fortunes
 		if ctx is None:
-			pront("WARNING", "Could not find channel for " + server[0] + " even though it should exist")
+			pront("WARNING", "Could not find channel for " + str(server[0]) + " even though it should exist")
 			continue
 
 		# Split stored options into argument array
@@ -378,7 +378,7 @@ async def fortune():
 			name=ctx.guild.name,
 			icon_url=ctx.guild.icon.url if ctx.guild.icon is not None else None
 		)
-		embed.set_footer(text="Category: " + cookie + ("\nOptions: " + server[2] if server[2] is not None else ''))
+		embed.set_footer(text="Category: " + cookie + ("\nOptions: " + server[2] or ''))
 		pront("OKBLUE", cookie)
 		message = await ctx.send(embed=embed)
 		await message.add_reaction("🌟")
