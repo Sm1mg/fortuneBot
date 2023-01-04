@@ -382,7 +382,7 @@ async def fortune():
 			name=ctx.guild.name,
 			icon_url=ctx.guild.icon.url if ctx.guild.icon is not None else None
 		)
-		embed.set_footer(text="Category: " + cookie + ("\nOptions: " + server[2] or ''))
+		embed.set_footer(text="Category: " + cookie + ("\nOptions: " + str(server[2]) if server[2] else ''))
 		pront("OKBLUE", cookie)
 		message = await ctx.send(embed=embed)
 		await message.add_reaction("🌟")
